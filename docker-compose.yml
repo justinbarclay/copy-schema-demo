@@ -1,0 +1,18 @@
+postgres:
+  image: "535558409775.dkr.ecr.ca-central-1.amazonaws.com/demo-postgres:v39"
+  container_name: "postgres"
+  environment:
+    POSTGRES_DB: "application_inventory"
+    POSTGRES_USER: "postgres"
+    POSTGRES_PASSWORD: "123456"
+  ports:
+    - "5432:5432"
+
+emacs:
+  image: "emacs"
+  container_name: "emacs"
+  tty: true
+  links:
+    - postgres
+  environment:
+    DATABASE_HOST: "postgres"

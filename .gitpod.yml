@@ -1,0 +1,10 @@
+image:
+  file: .gitpod.Dockerfile
+tasks:
+  - name: Database
+    init: docker run -d -e PGDATA='/data' -e POSTGRES_DB='clone_schema_db' -e POSTGRES_USER='postgres' -e POSTGRES_PASSWORD='123456' -p 5432:5432 "justinbarclay/clone-schema-demo_beta:v1"
+  - name: Readme
+    command: code readme.md
+ports:
+  - port: 8085
+    onOpen: open-browser
