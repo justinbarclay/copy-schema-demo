@@ -1,4 +1,4 @@
-#+PROPERTY: header-args:sql :engine "postgresql" :dbuser postgres :dbpassword "123456" :database sample_app_default :dbhost localhost
+#+PROPERTY: header-args:sql :engine "postgresql" :dbuser postgres :dbpassword "123456" :database sample_app_development :dbhost localhost
 
 #+BEGIN_QUOTE
 If you want to get the most out of this, you should run this document interactively. If you would like to follow along, open up your version Emacs, move your cursor to a code block, then press ~C-c C-c~ to run it.
@@ -30,6 +30,7 @@ That led me on a short journey onto the [[https://wiki.postgresql.org/wiki/Clone
 
 This wiki links to a more complete [[https://www.postgresql.org/message-id/CANu8FiyJtt-0q%3DbkUxyra66tHi6FFzgU8TqVR2aahseCBDDntA%40mail.gmail.com ][mailing list post]] that goes over how to copy all the data from a source schema into a brand new schema.
 
+#+Name: clone_schema_func
 #+begin_src sql
   -- Function: clone_schema(text, text)
 
@@ -295,15 +296,6 @@ Postgres keeps a table of information about itself and its state, and they call 
 SELECT * FROM pg_namespace;
 #+end_src
 
-#+RESULTS:
-|   oid | nspname            | nspowner | nspacl                              |
-|-------+--------------------+----------+-------------------------------------|
-|    99 | pg_toast           |       10 |                                     |
-|    11 | pg_catalog         |       10 | {postgres=UC/postgres,=U/postgres}  |
-|  2200 | public             |       10 | {postgres=UC/postgres,=UC/postgres} |
-| 13391 | information_schema |       10 | {postgres=UC/postgres,=U/postgres}  |
-| 16575 | backup             |       10 |                                     |
-
 ** Operating on Schemas
 *** Check for schema existence
 Knowing about the existence of ~pg_namespace~ gives us the ability to understand the first section of code
@@ -358,22 +350,11 @@ Unfortunately, in its current form, we can't really run that SQL. Let's make it 
   SELECT check_existence('public');
 #+end_src
 
-#+RESULTS: Check that source_schema exists
-| CREATE FUNCTION |
-|-----------------|
-| check_existence |
-| t               |
-
 We can also check for non existence of a schema
 #+NAME: Check that the dest schema doesn't exist
 #+begin_src sql
   SELECT check_existence('backup');
 #+end_src
-
-#+RESULTS: Check that the dest schema doesn't exist
-| check_existence |
-|-----------------|
-| t               |
 
 *** Creating a schema
 Great, now we know that the ~backup~ schema doesn't exist. Let's make one. Luckily creating a schema is pretty easy.
@@ -381,19 +362,10 @@ Great, now we know that the ~backup~ schema doesn't exist. Let's make one. Lucki
  CREATE SCHEMA backup;
 #+end_src
 
-#+RESULTS:
-| CREATE SCHEMA |
-|---------------|
-
 And we can use our function to verify.
 #+begin_src sql
   SELECT check_existence('backup');
 #+end_src
-
-#+RESULTS:
-| check_existence |
-|-----------------|
-| t               |
 
 ** Sequences
 The next step in copying one schema to another is to copy the Sequences
@@ -433,7 +405,6 @@ The next step in copying one schema to another is to copy the Sequences
       ELSE
               EXECUTE 'SELECT setval( ''' || buffer || ''', ' || sq_start_value || ', ' || sq_is_called || ');' ;
       END IF;
-
     END LOOP;
 #+end_src
 
@@ -451,16 +422,6 @@ When copying sequences, we're looking to:
    FROM information_schema.sequences
    WHERE sequence_schema = quote_ident('public')
 #+end_src
-
-#+RESULTS:
-| sequence_name                         |
-|---------------------------------------|
-| active_storage_attachments_id_seq     |
-| active_storage_blobs_id_seq           |
-| active_storage_variant_records_id_seq |
-| microposts_id_seq                     |
-| relationships_id_seq                  |
-| users_id_seq                          |
 
 Before we move on, let's make sure our new schema doesn't have any sequences
 
@@ -493,11 +454,6 @@ And let's take a look at what we made
 #+begin_src sql
   SELECT * FROM public.microposts_id_seq;
 #+end_src
-
-#+RESULTS:
-| last_value | log_cnt | is_called |
-|------------+---------+-----------|
-|        300 |      30 | t         |
 
 We made a table that stores values for last_value, log_cnt[fn:1], and is_called[fn:2].
 
@@ -551,11 +507,6 @@ Then because we're cloning both meta information and records themselves, we want
 SELECT setval( 'backup.microposts_id_seq', 300, true);
 #+end_src
 
-#+RESULTS:
-| setval |
-|--------|
-|    300 |
-
 ***** Let's quickly verify our work
 If we call nextval on ~public.microposts_id_seq~ and ~backup.microposts_id_seq~ they should produce the same results.
 
@@ -563,19 +514,9 @@ If we call nextval on ~public.microposts_id_seq~ and ~backup.microposts_id_seq~ 
 SELECT nextval( 'public.microposts_id_seq');
 #+end_src
 
-#+RESULTS:
-| nextval |
-|---------|
-|     301 |
-
 #+begin_src sql
 SELECT nextval( 'backup.microposts_id_seq');
 #+end_src
-
-#+RESULTS:
-| nextval |
-|---------|
-|     301 |
 
 **** Playground :TODO:VALIDATE:FIX:
 And now we just do that like... 50 more times.
@@ -630,9 +571,6 @@ And now we just do that like... 50 more times.
   END
   $$;
 #+end_src
-
-#+RESULTS:
-|---|
 
 ** Tables
 Now, with the next section of code, we want to copy tables and their associated data.
@@ -689,18 +627,6 @@ In short if we run a command like below, we can get a list of all table names we
          AND table_type = 'BASE TABLE'
 #+end_src
 
-#+RESULTS:
-| table_name                     |
-|--------------------------------|
-| active_storage_variant_records |
-| users                          |
-| microposts                     |
-| relationships                  |
-| active_storage_blobs           |
-| active_storage_attachments     |
-| schema_migrations              |
-| ar_internal_metadata           |
-
 **** 2. Copying table structure
 
 Like in sequences, we're going to step through copying one table as an example of how it works across the entire system. Let's operate on the ~microposts~ table.
@@ -709,10 +635,6 @@ It's surprisingly simple to copy table structures across schemas. All we need ar
 #+begin_src sql
 CREATE TABLE backup.microposts (LIKE public.microposts INCLUDING ALL);
 #+end_src
-
-#+RESULTS:
-| CREATE TABLE |
-|--------------|
 
 We can verify that this works by seeing that the table is empty when we query backup for microposts.
  
@@ -728,10 +650,6 @@ Copying data is one of the least complicated interactions we have. It's just a c
 INSERT INTO backup.microposts SELECT * FROM public.microposts;
 #+end_src
 
-#+RESULTS: Copying data using select and insert
-| INSERT 0 300 |
-|--------------|
-
 We can admire our handiwork by using a SELECT and a RIGHT JOIN statement. 
 
 😲
@@ -743,20 +661,6 @@ SELECT public.microposts.content as public_content, public.microposts.id as publ
 FROM backup.microposts
 RIGHT JOIN public.microposts on backup.microposts.id = public.microposts.id LIMIT 10;
 #+end_src
-
-#+RESULTS:
-| public_content                         | public_id | backup_content                         | backup_id |
-|----------------------------------------+-----------+----------------------------------------+-----------|
-| Minus officia perspiciatis hic beatae. |         1 | Minus officia perspiciatis hic beatae. |         1 |
-| Minus officia perspiciatis hic beatae. |         2 | Minus officia perspiciatis hic beatae. |         2 |
-| Minus officia perspiciatis hic beatae. |         3 | Minus officia perspiciatis hic beatae. |         3 |
-| Minus officia perspiciatis hic beatae. |         4 | Minus officia perspiciatis hic beatae. |         4 |
-| Minus officia perspiciatis hic beatae. |         5 | Minus officia perspiciatis hic beatae. |         5 |
-| Minus officia perspiciatis hic beatae. |         6 | Minus officia perspiciatis hic beatae. |         6 |
-| Sed ab sed voluptas sit.               |         7 | Sed ab sed voluptas sit.               |         7 |
-| Sed ab sed voluptas sit.               |         8 | Sed ab sed voluptas sit.               |         8 |
-| Sed ab sed voluptas sit.               |         9 | Sed ab sed voluptas sit.               |         9 |
-| Sed ab sed voluptas sit.               |        10 | Sed ab sed voluptas sit.               |        10 |
 
 **** 4. Update Default/Sequence values for columns
 When we created the ~backup.microposts~ table based off of the ~public.microposts~ table it copied everything, metadata included, word for word. This causes problems when we need to use our sequences from earlier. So we need to search through the metadata of the table and look for columns with a default value that uses sequences and replaces the inner text from referencing ~public~ to reference ~backup~.
@@ -849,11 +753,6 @@ We only need to get this
      WHERE nspname = quote_ident('public');
 #+end_src
 
-#+RESULTS:
-|  oid |
-|------|
-| 2200 |
-
 **** 1. Get all constraints for source schema
 Postgres has a catalogue called [[https://www.postgresql.org/docs/current/catalog-pg-constraint.html][pg_constraint]] that contains meta-information around all the constraints (foreign_key, primary_key, and exclusion) across the database. Unfortunately, that table is not sufficient to generate our query; we also need access to [[https://www.postgresql.org/docs/current/catalog-pg-class.html][pg_class]] which is a catalogue that keeps meta-information on anything that has a column in Postgres.
 
@@ -894,13 +793,6 @@ Putting this all together we'd get a query like:
      AND ct.contype = 'f';
 #+end_src
 
-#+RESULTS: Constraints Query
-| relname                        | conname             |   oid |
-|--------------------------------+---------------------+-------|
-| active_storage_attachments     | fk_rails_c3b3935057 | 16450 |
-| active_storage_variant_records | fk_rails_993965df05 | 16455 |
-| microposts                     | fk_rails_558c81314b | 16460 |
-
 **** 2. Generate a query to create constraints
 
 Postgres has a function, [[https://www.postgresql.org/docs/13/functions-info.html#FUNCTIONS-INFO-CATALOG-TABLE][pg_get_constraintdef,]] that can generate a constraint definition based on an object id.
@@ -920,10 +812,6 @@ SELECT pg_get_constraintdef(16460)
 #+end_src
 
 We get the following definition:
-#+RESULTS: Sample constraints definition.
-| pg_get_constraintdef                       |
-|--------------------------------------------|
-| FOREIGN KEY (user_id) REFERENCES users(id) |
 
 We can then put this information with the Constraints Query to generate the query for us:
 #+begin_src sql
@@ -938,11 +826,6 @@ SELECT 'ALTER TABLE ' || quote_ident('backup') || '.' || quote_ident(rn.relname)
          AND ct.contype = 'f'
        LIMIT 1;
 #+end_src
-
-#+RESULTS:
-| ?column?                                                                                                                                    |
-|---------------------------------------------------------------------------------------------------------------------------------------------|
-|  |
 
 **** 3. Execute generate queries
 Now, we can use a select statement to run a string as a query
@@ -1079,12 +962,114 @@ EXECUTE 'CREATE OR REPLACE VIEW ' || 'backup' || '.' ||
          AND table_name = quote_ident('first_users_posts')) || ';'
 #+end_src
 
+
+** Functions
+And this is where we are going to get ~Meta~. We're going to talk about a cloning functions while dissecting our cloning function.
+
+#+begin_quote
+For those reading this not in 2021, Facebook changed their name to Meta this year so I wanted to make a bad pun. But instead of you being able to chortle at that you now have to read this long winded explanation.
+#+end_quote
+
+Now, the final part in question that we're interested in is:
+#+begin_src sql
+    FOR func_oid IN
+      SELECT oid
+        FROM pg_proc 
+       WHERE pronamespace = src_oid
+
+    LOOP      
+      SELECT pg_get_functiondef(func_oid) INTO qry;
+      SELECT replace(qry, source_schema, dest_schema) INTO dest_qry;
+      EXECUTE dest_qry;
+
+    END LOOP;
+
+    RETURN; 
+#+end_src
+*** Getting a (list) of functions
+
+You _could_ scroll all the way back to the page copy and paste it in psql
+#+begin_src emacs-lisp
+  (org-sbe clone_schema_func)
+#+end_src
+
+Now, we can search for all functions in our current schema
+#+begin_src sql
+      SELECT oid, proname, pronamespace
+        FROM pg_proc
+        WHERE proname = 'clone_schema'
+#+end_src
+
+We can do the same as our base query by getting the object id of our current schema...
+#+begin_src sql
+SELECT oid
+      FROM pg_namespace
+     WHERE nspname = 'public'
+#+end_src
+
+and to put that together
+
+#+begin_src sql
+      SELECT oid, proname, pronamespace
+        FROM pg_proc
+        WHERE pronamespace = (SELECT oid
+                              FROM pg_namespace
+                              WHERE nspname = 'public')
+#+end_src
+
+Isn't this easier when we're inside a function and have access to variables? oh and we have loops?
+
+
+Now the next part is we want to loop over every func_oid returned from the query and:
+1. get it's function definition
+2. replace every reference to source_schema with dest_schema within that function
+3. then execute that function definition as a query.
+
+**** Step 1
+Get a function defition from a func_oid
+#+begin_src sql :results drawer
+SELECT pg_get_functiondef(16496);
+#+end_src
+**** Step 2
+#+begin_src sql :results drawer
+SELECT replace((SELECT pg_get_functiondef(16496)), 'public', 'enemy_number_1');
+#+end_src
+**** Step 3
+Now we need to do a little bit of magic and wrap our Execute call in an anonymous function to run. 
+#+begin_src sql
+DO $$
+BEGIN
+
+EXECUTE replace((SELECT pg_get_functiondef(16496)), 'public', 'enemy_number_1');
+
+END$$
+
+#+end_src
+
+I am not sure why the above works and below gives us an error talking about how the prepared statement replace does not exist.
+#+begin_src sql
+EXECUTE replace((SELECT pg_get_functiondef(16496)), 'public', 'enemy_number_1');
+#+end_src
+
 #+RESULTS:
 |---|
 
+But then we can search for this cloned function in the new schema
+#+begin_src sql
+      SELECT oid, proname, pronamespace
+        FROM pg_proc
+        WHERE pronamespace = (SELECT oid
+                              FROM pg_namespace
+                              WHERE nspname = 'enemy_number_1')
+#+end_src
 
-** Functions
-We don't have schema specific functions, all of our functions are used from the ~shared_extensions~ schema, so we don't really need to copy this either.
+#+RESULTS:
+|   oid | proname      | pronamespace |
+|-------+--------------+--------------|
+| 16621 | clone_schema |        16512 |
+** Fin
+And that, in essence, is how you copy one schema into the next. I think that was pretty simple... you know once your broke it down.
+
 ** Footnotes
 [fn:1]Why log_cnt exists is kind of interesting. https://stackoverflow.com/a/66458412
 [fn:2]is_called is boolean that modifies what setval returns. https://www.postgresql.org/docs/14/functions-sequence.html
