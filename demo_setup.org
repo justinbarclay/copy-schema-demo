@@ -1,4 +1,34 @@
 * Demo Setup
+*** Building the docker image
+Start the database
+#+begin_src shell
+docker run -d -e PGDATA='/data' -e POSTGRES_DB='clone_schema_db' -e POSTGRES_USER='postgres' -e POSTGRES_PASSWORD='123456' -p 5432:5432 "postgres:13.4-alpine"
+#+end_src
+
+Clone down the rails sample app respository
+
+#+begin_src shell
+git clone git@github.com:mhartl/sample_app_6th_ed.git ~/rails-app
+#+end_src
+
+Update database config to use postgres over sqlite and then create/populate the database.
+
+#+begin_src shell
+rails db:create
+rails db:migrate
+rails db:seed
+#+end_src
+
+Then stop the database, commit it and push it up.
+#+begin_src shell
+cont_id=$(docker ps -q)
+docker stop $cont_id
+docker commit $cont_id clone-schema-demo
+docker tag clone-schema-demo justinbarclay/clone-schema-demo_beta:v1
+docker push justinbarclay/clone-schema-demo_beta:v1
+#+end_src
+
+*** Log Error message in another buffer in Emacs
 Evaluate this code to have PSQL error logs displayed within Emacs
 #+begin_src elisp
 (defvar org-babel-eval-verbose t
