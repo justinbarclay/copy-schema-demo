@@ -33,11 +33,6 @@ docker push justinbarclay/clone-schema-demo_beta:v1
 docker run -d -e PGDATA='/data' -e POSTGRES_DB='clone_schema_db' -e POSTGRES_USER='postgres' -e POSTGRES_PASSWORD='123456' -p 5432:5432 "justinbarclay/clone-schema-demo_beta:v1"
 #+end_src
 
-#+RESULTS:
-: 15fba130dfdf0d8f2d388807be01d6ac1613421eac732b9e569c1007e330ddd0
-
-
-
 *** Log Error message in another buffer in Emacs
 Evaluate this code to have PSQL error logs displayed within Emacs
 #+begin_src elisp
@@ -63,4 +58,7 @@ STDERR with `org-babel-eval-error-notify'."
             nil)
         (buffer-string)))))
 #+end_src
+
+#+RESULTS:
+: org-babel-eval
 

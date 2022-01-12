@@ -1,35 +1,108 @@
 #+PROPERTY: header-args:sql :engine "postgresql" :dbuser postgres :dbpassword "123456" :database sample_app_development :dbhost localhost
-
-#+BEGIN_QUOTE
-If you want to get the most out of this, you should run this document interactively. If you would like to follow along, open up your version Emacs, move your cursor to a code block, then press ~C-c C-c~ to run it.
-#+END_QUOTE
+#+OPTIONS: ^:nil
+#+TITLE: How I sped up demo data generation by 97%
 
 * How I sped up demo data generation by 97%
+#+BEGIN_QUOTE
+This blog is meant as a playground. I find it best to play with code and see how it really works. In fact, that was most of the impetus for writing this in general; I wrote it as I explored and tried to understand the function. As such, I've broken out _most_ of the SQL so that you can paste it in a psql REPL and play around with it. Or if you're a cool kid, like me 😎, you can read use this as a literate playground in Emacs and org-mode.
+#+END_QUOTE
 ** ...or how I chose to copy data instead of generating it
 TLDR; Move from ruby and rails to SQL
 
-#+CAPTION: Women with a surprised face
 #+NAME: Colour me surprised
+#+attr_html: :height 300px
+#+attr_html: :alt "A women feigning surprise"
 [[https://www.publicdomainpictures.net/pictures/20000/velka/surprise-surprise.jpg]]
 * Why work on this?
 :PROPERTIES:
 :HEADER: hidden
 :END:
 
-For a project I was working on, it would take close to 12 minutes to gather and generate the data needed for demoing and testing the application. This means each time we would want to reset the application to it's initial state, for demo purposes, it would take us 12 minutes.
+For a project at work, I was working on a system that would seed a schema with a large set of data for each system's new user. Why each user got their own schema isn't that important. What was important was that this operation would take 15 minutes in our production environment and, on my dev machine, 30 minutes in a development. We eventually did some optimizations to the process where instead of inserting data one query at a time, we would bulk insert data, which easily shaved our times in half. But this wasn't enough for me, and I felt like we could do better.
 
-Look, mistakes were made, OK? But I am trying to learn (out in the open) from them. And, in this case, I'm looking to take you along this specifically painful journey.
+#+BEGIN_QUOTE
+I can hear you saying... "30 minutes? That's insane. How did you let it get so bad?" Look, mistakes were made, OK? But I am trying to learn from them out in the open. And in this case, I'm looking to take you along this specifically painful journey.
+#+END_QUOTE
+
+So, knowing that this could be done better, I did some research. Can we move a lot of this initial logic from Ruby to SQL somehow? I thought about just generating all the seed data in pure SQL and running those seed files whenever we needed to seed a schema. That seemed messy and unmaintainable, not only because I like maintaining Ruby over SQL but because we had some highly related data, which would mean importing some of our business logic into these seed files to maintain those relationships.
+
+Instead, I chose to dive deeper. Eventually, that led me on a short journey onto the PostgreSQL wiki. I found an [[https://wiki.postgresql.org/wiki/Clone_schema][article]] that talked about cloning the data from one schema onto another schema. I thought that was brilliant. We could maintain our seed data generation process in Ruby, import it into a demo data schema, and then clone from that schema whenever we instantiated a new schema for a user. And this article was really close to what I wanted, but it did not clone metadata about those tables. So, that meant that we were missing essential things like sequences and foreign key relations when we cloned. Luckily this article referenced a more complete [[https://www.postgresql.org/message-id/CANu8FiyJtt-0q%3DbkUxyra66tHi6FFzgU8TqVR2aahseCBDDntA%40mail.gmail.com][mailing list post]] that goes over how to copy all the data, including metadata, from a source schema into a brand new destination schema.
+
 * Using Pure SQL to Copy
-When I started this adventure, I knew very little about SQL and less so the variant we use, PSQL. I knew enough to write some select statements and maybe do a join. Did you know you could write full-on programs in it? It's even Turing complete! 🤯 It's not pretty, but it works.
+When I started this adventure in optimization, I knew very little about SQL and less so the variant we use, PSQL. I knew enough to write some select statements and maybe do a join or two. But I never really considered it a Turing Complete language 🤯. I mean... It's not pretty, but it works.
 
-I had a pretty good idea of what I wanted to do from a high level. We want to use a schema, called ~demo~, to cache any demo data generation. Then, when we want to populate an account schema with demo data, we copy data from the ~demo~ schema into the client schema.
+Now, I had a pretty good idea of what I wanted to do from a high level. We want to use a schema, called ~demo~, to cache any demo data generation. Then, when we want to populate an account schema with demo data, we copy data from the ~demo~ schema into the client schema.
 
-Simple, but I had no clue how to do this. I had no clue about the metaprogramming possible in PSQL. So, I did what every good developer does. Go to StackOverflow.
+I knew that the function presented on that mailing list was supposed to do what I wanted. But I understood almost none of the code. What sort of developer would I be if I blindly copied and pasted this code into production? So, instead, I read through this code line by line, and I teased it apart until I could understand it. Now, I want to explain this code very explicitly to you. You. My one reader. I mean, how else can you know you know something unless you explain it to someone else?
 
-That led me on a short journey onto the [[https://wiki.postgresql.org/wiki/Clone_schema][PostgreSQL wiki]] on how to clone tables from one schema onto another schema. Close but it has nothing about cloning the data or metadata about those tables.
+** Syntax Preamble
+Before I scare you with a lovecraftian horror of SQL, a 200 line function cloning one schema into a brand new schema, I need to lay some groundwork. I said you need to know ~SELECT~ and ~INSERT~ but now I need to talk to you about functions. This whole mess of an article is based on SQL functions. You should know what they are, what they look like, what part of your brain they like to gnaw on at 3 am.
+#+BEGIN_QUOTE
+If a horror monster does not go after the amydala first, the fear centre of the brain, they're doing it wrong.
+#+END_QUOTE
 
-This wiki links to a more complete [[https://www.postgresql.org/message-id/CANu8FiyJtt-0q%3DbkUxyra66tHi6FFzgU8TqVR2aahseCBDDntA%40mail.gmail.com ][mailing list post]] that goes over how to copy all the data from a source schema into a brand new schema.
+*** SQL Functions
+Outlined below is a simple version of the function syntax. Some items are optional, like, you don't need to have an ~OR~ or a ~REPLACE~, you don't need to have any arguments, and you don't have to declare any variables.
 
+You have to say you're creating a function with some name and that it has a body, and then you can do 0 or more things in that body.
+#+begin_src sql
+  CREATE OR REPLACE FUNCTION demo_func(
+
+      source_schema text
+  )
+    RETURNS void AS
+  $BODY$
+
+  DECLARE
+    src_oid          oid;
+
+  BEGIN
+  --  ...
+  END;
+  $BODY$
+#+end_src
+
+You can also have anonymous functions, where they operate just like a regular function but lack a name, arguments or the ability to return anything. Anonymous functions are suitable for when you need to do some work, and you need the full power of the PL/pgSQL language (loops, conditionals, logs/errors), but you don't need to name it or return anything.
+
+#+begin_src sql
+  do $$
+  DECLARE
+    src_oid oid;
+  BEGIN
+  -- ...
+  END
+  $$;
+#+end_src
+
+*** For loops!
+Like most modern languages, PL/pgSQL has ~for loops~. However, it does have a restriction, loops can only run within function calls.
+
+So to write a for loop in an anonymous function, it would look something like this:
+#+NAME: For loop example
+#+begin_src SQL :result ouput
+  do $$
+  BEGIN
+   FOR counter IN 1..5 LOOP
+     RAISE NOTICE 'Counter: %', counter;
+     END LOOP;
+   END
+  $$;
+#+end_src
+
+If you copy and paste this into a PSQL REPL, you would get output like below:
+#+NAME: Example output
+#+begin_src SQL
+NOTICE:  Counter: 1
+NOTICE:  Counter: 2
+NOTICE:  Counter: 3
+NOTICE:  Counter: 4
+NOTICE:  Counter: 5
+#+end_src
+
+For loops, in general, can work across an iterable item, be it a range, array, or query results.
+
+** Love and War and Cthulu
+For those who just want to see and play with occult artifacts before they understand them, here you are. Though I warn you, this incantation may not summon Cthulu but it probably would summon something like Azathoth.
 #+Name: clone_schema_func
 #+begin_src sql
   -- Function: clone_schema(text, text)
@@ -223,83 +296,33 @@ This wiki links to a more complete [[https://www.postgresql.org/message-id/CANu8
     OWNER TO postgres;
 #+end_src
 
-Woh. That's a lot of SQL, and there are words like CREATE and OR and LOOP in there. Let's step back a bit and go section by section.
-** Syntax Preamble
-Let's take a quick 
-*** Functions
-Below is the standard function syntax. Some items are optional, like, you don't need to have an ~OR~ option, you don't need to have any arguments, and you don't have to declare any variables.
-#+begin_src sql
-  CREATE OR REPLACE FUNCTION demo_func(
+#+BEGIN_QUOTE
+The function above is slightly modified from the version found on the mailing list. Mainly, it has been modified to work in modern versions of Postres IE. 10 and above.
+#+END_QUOTE
 
-      source_schema text
-  )
-    RETURNS void AS
-  $BODY$
 
-  DECLARE
-    src_oid          oid;
+Woh, insane, right? That's a lot of SQL, and there are words like CREATE and OR and LOOP in there. I need to step back and go section by section to grasp this.
 
-  BEGIN
-  --  ...
-  END;
-  $BODY$
-#+end_src
-
-You can also have anonymous functions, where they operate just like a regular function but lack a name, arguments or the ability to return anything. Anonymous functions are suitable for when you need to do some work, and you need the full power of the PL/pgSQL language (loops, conditionals, logs/errors), but don't need to name it or return anything.
-
-#+begin_src sql
-  do $$
-  DECLARE
-    src_oid oid;
-  BEGIN
-  -- ...
-  END
-  $$;
-#+end_src
-
-*** For loops!
-Like most modern languages, PL/pgSQL has for loops. However, loops can only run within function calls.
-
-So to write a for loop in an anonymous function, it would look something like this:
-#+NAME: For loop example
-#+begin_src sql :result ouput
-  do $$
-  BEGIN
-   FOR counter IN 1..5 LOOP
-     RAISE NOTICE 'Counter: %', counter;
-     END LOOP;
-   END
-  $$;
-#+end_src
-
-If you copy and paste this into a PSQL REPL you would get output like below:
-#+NAME: Example output
-#+begin_src sql
-NOTICE:  Counter: 1
-NOTICE:  Counter: 2
-NOTICE:  Counter: 3
-NOTICE:  Counter: 4
-NOTICE:  Counter: 5
-#+end_src
-
-For loops, in general, can work across an iterable item, be it a range, array, or query results.
-
-That's all there is for unique or semi non-obvious syntax. Hopefully, the rest makes sense.
+#+BEGIN_QUOTE
+I am done with the jokes and the Cthulu and the like. This is a serious learning article, we need to be serious to be taken serious.
+#+END_QUOTE
 
 * Let's break it down
 #+BEGIN_COMMENT
-Some of my examples are going to include chunks of code wrapped in a function definition. We can easily mimic the calling environment, call special syntax, or get some lovely printout here in org-mode. That means, for the most part, things being functions are an implementation detail and can be safely ignored.
+Some of my examples will include chunks of code wrapped in a function definition. We can easily mimic the calling environment, call special syntax, or get some lovely printout here in org-mode. That means, for the most part, things being functions are an implementation detail and can be safely ignored.
 #+END_COMMENT
 ** Metaprogramming in Postgres
-Postgres keeps a table of information about itself and its state, and they call the collection of metadata [[https://www.postgresql.org/docs/13/catalogs.html][systems catalog]]. Generally, these tables are prefixed with ~pg~. For example, ~pg_namespace~ is a table that contains information about all the schema's stored in the database
-#+begin_src sql
+#+begin_src SQL
 SELECT * FROM pg_namespace;
 #+end_src
 
+Postgres keeps a table of information about itself and its state, and they call the collection of metadata [[https://www.postgresql.org/docs/13/catalogs.html][systems catalogue]]. Generally, these tables are prefixed with ~pg~. For example, [[https://www.postgresql.org/docs/13/catalog-pg-namespace.html][pg_namespace]] is a table that contains information about all schemas stored in the database.
+
 ** Operating on Schemas
+I assume you know about Schemas because this is a blog post on how to clone one schema to another. However, if you're new to SQL or have never needed to concern yourself with schemas before, visit [[https://www.postgresql.org/docs/current/ddl-schemas.][here]] to find out more.
 *** Check for schema existence
-Knowing about the existence of ~pg_namespace~ gives us the ability to understand the first section of code
-#+begin_src sql
+Knowing about the existence of ~pg_namespace~ gives us the ability to understand the first section of code:
+#+begin_src SQL
 -- Check that source_schema exists
     SELECT oid INTO src_oid
       FROM pg_namespace
@@ -307,7 +330,7 @@ Knowing about the existence of ~pg_namespace~ gives us the ability to understand
     IF NOT FOUND
       THEN 
       RAISE NOTICE 'source schema % does not exist!', source_schema;
-      RETURN ;
+      RETURN;
         END IF;
 
     -- Check that dest_schema does not yet exist
@@ -323,9 +346,9 @@ Knowing about the existence of ~pg_namespace~ gives us the ability to understand
     EXECUTE 'CREATE SCHEMA ' || quote_ident(dest_schema) ;
 #+end_src
 
-Unfortunately, in its current form, we can't really run that SQL. Let's make it a function so we can normalize the results:
+Unfortunately, we can't really run that as pure SQL in its current form. So instead, we need to make it a function so we can normalize the results:
 #+NAME: Check that source_schema exists
-#+begin_src sql
+#+begin_src SQL
   CREATE OR REPLACE FUNCTION check_existence(
     source_schema text)
     RETURNS bool AS $BODY$
@@ -346,70 +369,110 @@ Unfortunately, in its current form, we can't really run that SQL. Let's make it 
 
   LANGUAGE plpgsql VOLATILE
   COST 100;
+#+end_src
 
+#+RESULTS: Check that source_schema exists
+| CREATE FUNCTION |
+|-----------------|
+
+And then, we can test it to see if a schema does exist:
+#+begin_src SQL
   SELECT check_existence('public');
 #+end_src
 
-We can also check for non existence of a schema
+#+RESULTS:
+| check_existence |
+|-----------------|
+| t               |
+
+
+We can also check for the non-existence of a schema:
 #+NAME: Check that the dest schema doesn't exist
-#+begin_src sql
+#+begin_src SQL
   SELECT check_existence('backup');
 #+end_src
 
+#+RESULTS: Check that the dest schema doesn't exist
+|---|
+
 *** Creating a schema
-Great, now we know that the ~backup~ schema doesn't exist. Let's make one. Luckily creating a schema is pretty easy.
-#+begin_src sql
+Great, now we know that the ~backup~ schema doesn't exist. Let's make one. Luckily, creating a schema is pretty easy:
+#+begin_src SQL
  CREATE SCHEMA backup;
 #+end_src
 
-And we can use our function to verify.
-#+begin_src sql
+#+RESULTS:
+| CREATE SCHEMA |
+|---------------|
+
+Now we can use our function to verify:
+#+begin_src SQL
   SELECT check_existence('backup');
 #+end_src
 
+#+RESULTS:
+| check_existence |
+|-----------------|
+| t               |
+
 ** Sequences
-The next step in copying one schema to another is to copy the Sequences
-#+begin_src sql
-    FOR object IN
-      SELECT sequence_name::text 
-        FROM information_schema.sequences
-        WHERE sequence_schema = quote_ident(source_schema)
+The next step in copying one schema to another is to copy all of the [[https://www.postgresql.org/docs/14/sql-createsequence.html][Sequences]]:
+#+begin_src SQL
+  FOR object IN
+  SELECT
+    sequence_name::text
+  FROM
+    information_schema.sequences
+  WHERE
+    sequence_schema = quote_ident(source_schema)
     LOOP
-      EXECUTE 'CREATE SEQUENCE ' || quote_ident(dest_schema) || '.' || quote_ident(object);
-      srctbl := quote_ident(source_schema) || '.' || quote_ident(object);
+      EXECUTE 'CREATE SEQUENCE ' | | quote_ident(dest_schema) | | '.' | | quote_ident(object);
 
-      EXECUTE 'SELECT last_value, max_value, start_value, increment_by, min_value, cache_value, log_cnt, is_cycled, is_called 
-                FROM ' || quote_ident(source_schema) || '.' || quote_ident(object) || ';' 
-                INTO sq_last_value, sq_max_value, sq_start_value, sq_increment_by, sq_min_value, sq_cache_value, sq_log_cnt, sq_is_cycled, sq_is_called ; 
+  srctbl: = quote_ident(source_schema) | | '.' | | quote_ident(object);
 
-      IF sq_is_cycled 
-        THEN 
-          sq_cycled := 'CYCLE';
-      ELSE
-          sq_cycled := 'NO CYCLE';
-      END IF;
+  seq_query: = format('SELECT max_value, start_value, increment_by, min_value, cache_size, cycle FROM pg_sequences
+                          WHERE sequencename = %L AND schemaname = %L ;', object, source_schema);
 
-      EXECUTE 'ALTER SEQUENCE '   || quote_ident(dest_schema) || '.' || quote_ident(object) 
-              || ' INCREMENT BY ' || sq_increment_by
-              || ' MINVALUE '     || sq_min_value 
-              || ' MAXVALUE '     || sq_max_value
-              || ' START WITH '   || sq_start_value
-              || ' RESTART '      || sq_min_value 
-              || ' CACHE '        || sq_cache_value 
-              || sq_cycled || ' ;' ;
+  EXECUTE seq_query INTO sq_max_value,
+  sq_start_value,
+  sq_increment_by,
+  sq_min_value,
+  sq_cache_value,
+  sq_is_cycled;
 
-      buffer := quote_ident(dest_schema) || '.' || quote_ident(object);
-      IF include_recs 
-          THEN
-              EXECUTE 'SELECT setval( ''' || buffer || ''', ' || sq_last_value || ', ' || sq_is_called || ');' ; 
-      ELSE
-              EXECUTE 'SELECT setval( ''' || buffer || ''', ' || sq_start_value || ', ' || sq_is_called || ');' ;
-      END IF;
-    END LOOP;
+  seq_query: = format('SELECT last_value, log_cnt, is_called FROM %s.%s;', source_schema, object);
+
+  EXECUTE seq_query INTO sq_last_value,
+  sq_log_cnt,
+  sq_is_called;
+
+  IF sq_is_cycled THEN
+    sq_cycled: = 'CYCLE';
+
+  ELSE
+    sq_cycled: = 'NO CYCLE';
+
+  END IF;
+
+  seq_query: = format('ALTER SEQUENCE %s.%s INCREMENT BY %s MINVALUE %s MAXVALUE %s START WITH %s RESTART %s CACHE %s %s ;', quote_ident(dest_schema), quote_ident(object), sq_increment_by, sq_min_value, sq_max_value, sq_start_value, sq_min_value, sq_cache_value, sq_cycled);
+
+  EXECUTE seq_query;
+
+  buffer: = quote_ident(dest_schema) | | '.' | | quote_ident(object);
+
+  IF include_recs THEN
+    EXECUTE 'SELECT setval( ''' | | buffer | | ''', ' | | sq_last_value | | ', ' | | sq_is_called | | ');';
+
+  ELSE
+    EXECUTE 'SELECT setval( ''' | | buffer | | ''', ' | | sq_start_value | | ', ' | | sq_is_called | | ');';
+
+  END IF;
+
+  END LOOP;
 #+end_src
 
 *** What is a Sequence
-A Sequence is a special table that generates a sequence of numbers. You'll often see a sequence used for generating IDs for tables.
+A Sequence is a special table that generates some sequence of numbers. For instance, Sequences are often used for generating the index values for a table.
 *** Copying Sequence and Values
 When copying sequences, we're looking to: 
 1. Get all sequence names from the source schema
@@ -417,166 +480,301 @@ When copying sequences, we're looking to:
 3. Populate them with metadata from source sequences
 4. Update destination schema number to match source schema numbers
 **** 1. Get All Sequence Names
-#+begin_src sql
+If we query Postgres for all sequences attached to the public table:
+#+begin_src SQL
   SELECT sequence_name::text 
    FROM information_schema.sequences
    WHERE sequence_schema = quote_ident('public')
 #+end_src
 
-Before we move on, let's make sure our new schema doesn't have any sequences
+We find that we have 7 entries:
 
-#+begin_src sql
-  SELECT sequence_name::text 
-   FROM information_schema.sequences
-   WHERE sequence_schema = quote_ident('backup')
+#+RESULTS:
+| sequence_name                         |
+|---------------------------------------|
+| users_id_seq                          |
+| active_storage_attachments_id_seq     |
+| microposts_id_seq                     |
+| active_storage_blobs_id_seq           |
+| active_storage_variant_records_id_seq |
+| relationships_id_seq                  |
+
+Before we can proceed, we need to ensure our new schema doesn't have any sequences in it:
+#+begin_src SQL
+  SELECT
+    sequence_name::text
+  FROM
+    information_schema.sequences
+  WHERE
+    sequence_schema = quote_ident('backup')
 #+end_src
 
+Beautiful: 
+#+RESULTS:
+| sequence_name |
+|---------------|
+
 **** 2. Create Sequence
-Typically this would look something like
-#+begin_src sql
+Creating a list of sequences looks like this:
+#+begin_src SQL
   FOR object IN
-    SELECT sequence_name::text 
-           FROM information_schema.sequences
-           WHERE sequence_schema = quote_ident(source_schema)
-  LOOP
-    EXECUTE 'CREATE SEQUENCE ' || quote_ident(dest_schema) || '.' || quote_ident(object);
-    srctbl := quote_ident(source_schema) || '.' || quote_ident(object);
+  SELECT
+    sequence_name::text
+  FROM
+    information_schema.sequences
+  WHERE
+    sequence_schema = quote_ident(source_schema)
+    LOOP
+      EXECUTE 'CREATE SEQUENCE ' || quote_ident(dest_schema) || '.' || quote_ident(object);
+
   END LOOP;
 #+end_src
 
-There can be many sequences in a schema, so let's zoom in on one sequence and follow it through the process.
+Generally, in a schema, there are a lot of sequences. One for each table with an index. So, let's zoom in on one sequence and follow it through the process.
+
 From the code above, where you see ~object~, we will replace it with ~microposts_id_seq'~, one of the values from the above select statement.
 #+begin_src sql
   CREATE SEQUENCE backup.microposts_id_seq;
 #+end_src
 
+#+RESULTS:
+| CREATE SEQUENCE |
+|-----------------|
+
 And let's take a look at what we made
 #+begin_src sql
-  SELECT * FROM public.microposts_id_seq;
+  SELECT * FROM backup.microposts_id_seq;
 #+end_src
+
+#+RESULTS:
+| last_value | log_cnt | is_called |
+|------------+---------+-----------|
+|          1 |       0 | f         |
 
 We made a table that stores values for last_value, log_cnt[fn:1], and is_called[fn:2].
 
 **** 3. Copy Sequence Values
-Now we're going to fake it a little bit to see what the next statement is doing more easily.
+Now we're going to fake it a little bit to see what the following statement is doing more easily.
 
 We can translate:
 #+begin_src sql
-    EXECUTE 'SELECT last_value, max_value, start_value, increment_by, min_value, cache_value, log_cnt, is_cycled, is_called 
-    FROM ' || quote_ident('public') || '.' || quote_ident(object) || ';' 
-    INTO sq_last_value, sq_max_value, sq_start_value, sq_increment_by, sq_min_value, sq_cache_value, sq_log_cnt, sq_is_cycled, sq_is_called ; 
+  seq_query: = format('SELECT max_value, start_value, increment_by, min_value, cache_size, cycle FROM pg_sequences
+    WHERE sequencename = %L AND schemaname = %L ;', object, source_schema);
+
+  EXECUTE seq_query INTO sq_max_value,
+  sq_start_value,
+  sq_increment_by,
+  sq_min_value,
+  sq_cache_value,
+  sq_is_cycled;
 #+end_src
 
 To:
-#TODO: Update to postgres 10
 #+begin_src sql
-  SELECT last_value AS sq_last_value, max_value AS sq_max_value, start_value AS sq_start_value, increment_by AS sq_increment_by,
-         min_value AS sq_min_value, cache_value AS sq_cache_value, log_cnt AS sq_log_cnt, is_cycled AS sq_is_cycled,
-         is_called AS sq_is_called
-  FROM public.user_id_seq;
+  SELECT
+    max_value AS sq_max_value,
+    start_value AS sq_start_value,
+    increment_by AS sq_increment_by,
+    min_value AS sq_min_value,
+    cache_size AS sq_cache_value,
+    CYCLE AS sq_is_cycled
+  FROM
+    pg_sequences
+  WHERE
+    sequencename = 'microposts_id_seq'
+    AND schemaname = 'public';
 #+end_src
+
+Which gets us a nice little table:
+#+RESULTS:
+|        sq_max_value | sq_start_value | sq_increment_by | sq_min_value | sq_cache_value | sq_is_cycled |
+|---------------------+----------------+-----------------+--------------+----------------+--------------|
+| 9223372036854775807 |              1 |               1 |            1 |              1 | f            |
 
 Now because of how SQL works, we have to convert data. So we translate the value ~sq_is_cycled~ from a boolean to a string.
+#+begin_src SQL
+  IF sq_is_cycled THEN
+    sq_cycled := 'CYCLE';
 
-#+begin_src sql
-    IF sq_is_cycled
-      THEN 
-        sq_cycled := 'CYCLE';
-    ELSE
-        sq_cycled := 'NO CYCLE';
-    END IF;
+  ELSE
+    sq_cycled := 'NO CYCLE';
+
+  END IF;
 #+end_src
 
-If we could run that code, we would see that users_id_seq is not cycled, and we get ~'NO CYCLE'~.
+If we go to the table above, we can see that ~sq_is_cycled~ is false, which means ~sq_cycled~ is set to ~'NO CYCLE'~.
+
+#+begin_comment
+ Note: because the code above requires variables, we can't run this outside of a function, so we just have to evaluate it inside our heads.
+#+end_comment
 
 So now we want to copy over the data from ~public.microposts_id_seq~ to ~backup.microposts_id_seq~
 #+begin_src sql
-    ALTER SEQUENCE backup.microposts_id_seq
-            INCREMENT BY 1 
-            MINVALUE     1
-            MAXVALUE     9223372036854775807
-            START WITH   1
-            RESTART      1
-            CACHE        1
-            NO CYCLE;
+  ALTER SEQUENCE backup.microposts_id_seq
+    INCREMENT BY 1
+    MINVALUE 1
+    MAXVALUE 9223372036854775807 START WITH 1 RESTART 1
+    CACHE 1 NO CYCLE;
 #+end_src
 
-**** 4. Update sequence to match current values
-Then because we're cloning both meta information and records themselves, we want to make sure our sequence values line up with the ~public~'s sequence values.
+Now, we can run the same select query to get data about a sequence to verify that we have successfully cloned ~microposts_id_seq~ into ~backup~
 #+begin_src sql
-SELECT setval( 'backup.microposts_id_seq', 300, true);
+  SELECT
+    max_value AS sq_max_value,
+    start_value AS sq_start_value,
+    increment_by AS sq_increment_by,
+    min_value AS sq_min_value,
+    cache_size AS sq_cache_value,
+    CYCLE AS sq_is_cycled
+  FROM
+    pg_sequences
+  WHERE
+    sequencename = 'microposts_id_seq'
+    AND schemaname = 'backup';
+
 #+end_src
+
+#+RESULTS:
+|        sq_max_value | sq_start_value | sq_increment_by | sq_min_value | sq_cache_value | sq_is_cycled |
+|---------------------+----------------+-----------------+--------------+----------------+--------------|
+| 9223372036854775807 |              1 |               1 |            1 |              1 | f            |
+
+**** 4. Update sequence to match current values
+Then because we're cloning both meta information and records themselves, we want to make sure our sequence values align with the ~public~'s sequence values.
+
+#+begin_src sql
+  seq_query := format('SELECT last_value, log_cnt, is_called FROM %s.%s;', source_schema, object);
+
+  EXECUTE seq_query INTO sq_last_value,
+  sq_log_cnt,
+  sq_is_called;
+#+end_src
+
+So, now we need to get the current state of the sequence for microposts_id_seq
+#+begin_src sql
+  SELECT
+    last_value AS sq_last_value,
+    log_cnt AS sq_log_cnt,
+    is_called AS sq_is_called
+  FROM
+    public.microposts_id_seq;
+#+end_src
+
+#+RESULTS:
+| sq_last_value | sq_log_cnt | sq_is_called |
+|---------------+------------+--------------|
+|           300 |         30 | t            |
+
+and update the ~backup~ schema
+#+begin_src sql
+  EXECUTE 'SELECT setval( ''' || buffer || ''', ' || sq_last_value || ', ' || sq_is_called || ');'
+#+end_src
+
+Which we can trivially translate to:
+#+begin_src SQL
+  SELECT
+    setval('backup.microposts_id_seq', 300, TRUE);
+#+end_src
+
+#+RESULTS:
+| setval |
+|--------|
+|    300 |
 
 ***** Let's quickly verify our work
 If we call nextval on ~public.microposts_id_seq~ and ~backup.microposts_id_seq~ they should produce the same results.
 
 #+begin_src sql
-SELECT nextval( 'public.microposts_id_seq');
+  SELECT
+    nextval('public.microposts_id_seq');
 #+end_src
+
+#+RESULTS:
+| nextval |
+|---------|
+|     301 |
 
 #+begin_src sql
-SELECT nextval( 'backup.microposts_id_seq');
+  SELECT
+    nextval('backup.microposts_id_seq');
 #+end_src
 
-**** Playground :TODO:VALIDATE:FIX:
+#+RESULTS:
+| nextval |
+|---------|
+|     301 |
+
+**** Playground
 And now we just do that like... 50 more times.
 
 #+begin_src sql
-  do $$
+  DO $$
   DECLARE
-  source_schema text;
-  dest_schema text;
-  srctbl text;
-  object oid;
+    source_schema text;
+    dest_schema text;
+    seq_query text;
+    buffer text;
+    srctbl text;
+    object text;
+    sq_max_value bigint;
+    sq_start_value bigint;
+    sq_increment_by bigint;
+    sq_min_value bigint;
+    sq_cache_value bigint;
+    sq_is_cycled bool;
+    sq_last_value bigint;
+    sq_log_cnt bigint;
+    sq_is_called bool;
+    sq_cycled text;
+    include_recs bool;
   BEGIN
-  source_schema := 'dev';
-  dest_schema := 'demo';
-  FOR object IN
-        SELECT sequence_name::text 
-          FROM information_schema.sequences
-          WHERE sequence_schema = quote_ident(source_schema)
+    include_recs := TRUE;
+    source_schema := 'public';
+    dest_schema := 'backup';
+    FOR object IN
+    SELECT
+      sequence_name::text
+    FROM
+      information_schema.sequences
+    WHERE
+      sequence_schema = quote_ident(source_schema)
       LOOP
         EXECUTE 'CREATE SEQUENCE ' || quote_ident(dest_schema) || '.' || quote_ident(object);
         srctbl := quote_ident(source_schema) || '.' || quote_ident(object);
-  
-        EXECUTE 'SELECT last_value, max_value, start_value, increment_by, min_value, cache_value, log_cnt, is_cycled, is_called 
-                  FROM ' || quote_ident(source_schema) || '.' || quote_ident(object) || ';' 
-                  INTO sq_last_value, sq_max_value, sq_start_value, sq_increment_by, sq_min_value, sq_cache_value, sq_log_cnt, sq_is_cycled, sq_is_called ; 
-  
-        IF sq_is_cycled 
-          THEN 
-            sq_cycled := 'CYCLE';
+        seq_query := format('SELECT max_value, start_value, increment_by, min_value, cache_size, cycle FROM pg_sequences
+                          WHERE sequencename = %L AND schemaname = %L ;', object, source_schema);
+        EXECUTE seq_query INTO sq_max_value,
+        sq_start_value,
+        sq_increment_by,
+        sq_min_value,
+        sq_cache_value,
+        sq_is_cycled;
+        seq_query := format('SELECT last_value, log_cnt, is_called FROM %s.%s;', source_schema, object);
+        EXECUTE seq_query INTO sq_last_value,
+        sq_log_cnt,
+        sq_is_called;
+        IF sq_is_cycled THEN
+          sq_cycled := 'CYCLE';
         ELSE
-            sq_cycled := 'NO CYCLE';
+          sq_cycled := 'NO CYCLE';
         END IF;
-  
-        EXECUTE 'ALTER SEQUENCE '   || quote_ident(dest_schema) || '.' || quote_ident(object) 
-                || ' INCREMENT BY ' || sq_increment_by
-                || ' MINVALUE '     || sq_min_value 
-                || ' MAXVALUE '     || sq_max_value
-                || ' START WITH '   || sq_start_value
-                || ' RESTART '      || sq_min_value 
-                || ' CACHE '        || sq_cache_value 
-                || sq_cycled || ' ;' ;
-  
+        seq_query := format('ALTER SEQUENCE %s.%s INCREMENT BY %s MINVALUE %s MAXVALUE %s START WITH %s RESTART %s CACHE %s %s ;', quote_ident(dest_schema), quote_ident(object), sq_increment_by, sq_min_value, sq_max_value, sq_start_value, sq_min_value, sq_cache_value, sq_cycled);
+        EXECUTE seq_query;
         buffer := quote_ident(dest_schema) || '.' || quote_ident(object);
-        IF include_recs 
-            THEN
-                EXECUTE 'SELECT setval( ''' || buffer || ''', ' || sq_last_value || ', ' || sq_is_called || ');' ; 
+        IF include_recs THEN
+          EXECUTE 'SELECT setval( ''' || buffer || ''', ' || sq_last_value || ', ' || sq_is_called || ');';
         ELSE
-                EXECUTE 'SELECT setval( ''' || buffer || ''', ' || sq_start_value || ', ' || sq_is_called || ');' ;
+          EXECUTE 'SELECT setval( ''' || buffer || ''', ' || sq_start_value || ', ' || sq_is_called || ');';
         END IF;
-  
       END LOOP;
   END
   $$;
 #+end_src
 
 ** Tables
-Now, with the next section of code, we want to copy tables and their associated data.
-
-#+begin_src sql
-    FOR object IN
+For step 2 of our 5 step plan, we need to copy tables. This includes their data and metadata. The section of the ~clone_schema~ function that deals with cloning tables is:
+#+begin_src SQL
+  FOR object IN
       SELECT TABLE_NAME::text 
         FROM information_schema.tables 
        WHERE table_schema = quote_ident(source_schema)
@@ -607,9 +805,10 @@ Now, with the next section of code, we want to copy tables and their associated 
     END LOOP;
 #+end_src
 
+Luckily, this section of the ~clone_schema~ function seems a lot simpler. Well, at least for me, but maybe that's because I am performing simple select or insert operations on tables any time I play in SQL.
 
 *** Copying table structure and data
-This requires us to:
+Reading through the SQL above, we can see 4 main tasks ahead of us:
 1. Get all the tables of interest
 2. Create the tables in the new schema
 3. Copy data from the source schema's tables into the new schema's tables
@@ -618,127 +817,212 @@ This requires us to:
 **** 1. Get all tables
 We want to iterate over all the tables in a schema. But how do we get that information? Luckily, Postgres has meta-programming facilities based around schema's called [[https://www.postgresql.org/docs/current/information-schema.html][information_schema]] which has a [[https://www.postgresql.org/docs/13/sql-createview.html][view]] specifically for [[https://www.postgresql.org/docs/current/infoschema-tables.html][tables]].
 
-In short if we run a command like below, we can get a list of all table names we want to operate on.
+In short if we run a command like below, we can get a list of all table names that are in the public schema.
 #+begin_src sql
   -- FOR OBJECT In
-      SELECT TABLE_NAME::text 
-        FROM information_schema.tables 
-       WHERE table_schema = 'public'
-         AND table_type = 'BASE TABLE'
+  SELECT
+    TABLE_NAME::text
+  FROM
+    information_schema.tables
+  WHERE
+    table_schema = 'public'
+    AND table_type = 'BASE TABLE'
 #+end_src
+
+#+RESULTS:
+| table_name                     |
+|--------------------------------|
+| schema_migrations              |
+| ar_internal_metadata           |
+| active_storage_blobs           |
+| users                          |
+| microposts                     |
+| active_storage_attachments     |
+| active_storage_variant_records |
+| relationships                  |
 
 **** 2. Copying table structure
 
-Like in sequences, we're going to step through copying one table as an example of how it works across the entire system. Let's operate on the ~microposts~ table.
+Like in sequences, we will step through copying one table as an example of how it works across the entire system. Let's operate on the ~microposts~ table.
 
-It's surprisingly simple to copy table structures across schemas. All we need are two new pieces of syntax: LIKE and INCLUDING. When doing a CREATE table operation, this means copy this table with X columns, indexes, and constraints.
+It's surprisingly simple to copy table structures across schemas. When doing a CREATE table operation, we can interpret the following as "copy this table with X columns, indexes, and constraints." All we need are two new pieces of syntax: [[https://www.postgresql.org/docs/current/sql-createtable.html][LIKE and INCLUDING]].
+
+#+BEGIN_QUOTE
+The LIKE clause specifies a table from which the new table automatically copies all column names, their data types, and their not-null constraints.
+- Postgres Documentation
+#+END_QUOTE
+
 #+begin_src sql
-CREATE TABLE backup.microposts (LIKE public.microposts INCLUDING ALL);
+  CREATE TABLE backup.microposts (
+    LIKE public.microposts INCLUDING ALL
+  );
 #+end_src
 
-We can verify that this works by seeing that the table is empty when we query backup for microposts.
+#+RESULTS:
+| CREATE TABLE |
+|--------------|
+
+We can verify that this works by seeing that the table exists but is void of any data:
  
-#+begin_src sql
-SELECT id, content FROM backup.microposts
+#+begin_src SQL
+  SELECT
+    id,
+    content
+  FROM
+    backup.microposts
 #+end_src
+
+#+RESULTS:
+| id | content |
+|----+---------|
 
 **** 3. Copy Data
 Copying data is one of the least complicated interactions we have. It's just a combination of INSERT and SELECT operations.
 
 #+NAME: Copying data using select and insert
 #+begin_src sql
-INSERT INTO backup.microposts SELECT * FROM public.microposts;
+  INSERT INTO backup.microposts
+  SELECT * FROM
+    public.microposts;
 #+end_src
 
-We can admire our handiwork by using a SELECT and a RIGHT JOIN statement. 
+#+RESULTS: Copying data using select and insert
+| INSERT 0 300 |
+|--------------|
+
+We can admire our handiwork by using a SELECT and a [[https://www.postgresql.org/docs/14/queries-table-expressions.html][RIGHT JOIN]] statement to compare the two tables.
 
 😲
 
 Shocking, I know.
 #+begin_src sql
-SELECT public.microposts.content as public_content, public.microposts.id as public_id,
-       backup.microposts.content as backup_content, backup.microposts.id as backup_id
-FROM backup.microposts
-RIGHT JOIN public.microposts on backup.microposts.id = public.microposts.id LIMIT 10;
+  SELECT
+    public.microposts.content AS public_content,
+    public.microposts.id AS public_id,
+    backup.microposts.content AS backup_content,
+    backup.microposts.id AS backup_id
+  FROM
+    backup.microposts
+    RIGHT JOIN public.microposts ON backup.microposts.id = public.microposts.id
+  LIMIT 10;
 #+end_src
 
+#+RESULTS:
+| public_content                       | public_id | backup_content                       | backup_id |
+|--------------------------------------+-----------+--------------------------------------+-----------|
+| Quisquam non ut aliquid repudiandae. |         1 | Quisquam non ut aliquid repudiandae. |         1 |
+| Quisquam non ut aliquid repudiandae. |         2 | Quisquam non ut aliquid repudiandae. |         2 |
+| Quisquam non ut aliquid repudiandae. |         3 | Quisquam non ut aliquid repudiandae. |         3 |
+| Quisquam non ut aliquid repudiandae. |         4 | Quisquam non ut aliquid repudiandae. |         4 |
+| Quisquam non ut aliquid repudiandae. |         5 | Quisquam non ut aliquid repudiandae. |         5 |
+| Quisquam non ut aliquid repudiandae. |         6 | Quisquam non ut aliquid repudiandae. |         6 |
+| Vitae quisquam facilis qui vel.      |         7 | Vitae quisquam facilis qui vel.      |         7 |
+| Vitae quisquam facilis qui vel.      |         8 | Vitae quisquam facilis qui vel.      |         8 |
+| Vitae quisquam facilis qui vel.      |         9 | Vitae quisquam facilis qui vel.      |         9 |
+| Vitae quisquam facilis qui vel.      |        10 | Vitae quisquam facilis qui vel.      |        10 |
+
 **** 4. Update Default/Sequence values for columns
-When we created the ~backup.microposts~ table based off of the ~public.microposts~ table it copied everything, metadata included, word for word. This causes problems when we need to use our sequences from earlier. So we need to search through the metadata of the table and look for columns with a default value that uses sequences and replaces the inner text from referencing ~public~ to reference ~backup~.
+When we created the ~backup.microposts~ table based off of the ~public.microposts~ table it copied everything, metadata included, word for word. However, this introduces a problem for us when we need to use our sequences from earlier. It copies and references _all of_ the old table's metadata, including the sequences table reference. So we need to search through the table's metadata and look for columns with a default value that uses sequences and replaces the inner text from referencing ~public~ to reference ~backup~.
 
 We can generate a query that performs this for us
 #+begin_src sql
-        SELECT column_name::text, 
-               REPLACE(column_default::text, 'public', 'backup'),
-               column_default::text
-          FROM information_schema.COLUMNS 
-         WHERE table_schema = 'backup'
-           AND TABLE_NAME = 'microposts'
-           AND column_default LIKE 'nextval(%public%::regclass)'
+  SELECT
+    column_name::text,
+    REPLACE(column_default::text, 'public', 'backup'),
+    column_default::text
+  FROM
+    information_schema.COLUMNS
+  WHERE
+    table_schema = 'backup'
+    AND TABLE_NAME = 'microposts'
+    AND column_default LIKE 'nextval(%public%::regclass)'
 #+end_src
+
+#+RESULTS:
+| column_name | replace | column_default |
+|-------------+---------+----------------|
 
 We can then use this information to update our apps table to reference the new sequences we generated.
 #+begin_src sql
-ALTER TABLE backup.microposts ALTER COLUMN id SET DEFAULT nextval('backup.microposts_id_seq'::regclass);
+  ALTER TABLE backup.microposts
+    ALTER COLUMN id SET DEFAULT nextval('backup.microposts_id_seq'::regclass);
 #+end_src
 
-And if you wonder what happens when we call nextval('backup.microposts_id_seq'::regclass), you can play with it below. Essentially it generates a monotonically increasing number, perfect for an object id.
+And if you wonder what happens when we call nextval('backup.microposts_id_seq'::regclass), you can play with it below. In my example, it generates a monotonically increasing number, perfect for an object id.
 #+begin_src sql
-SELECT nextval('public.microposts_id_seq'::regclass);
+  SELECT
+    nextval('backup.microposts_id_seq'::regclass);
 #+end_src
 
-**** Playground  :TODO:VALIDATE:
+#+RESULTS:
+| nextval |
+|---------|
+|     301 |
+
+**** Playground
 #+begin_src sql
-DO $$
-    source_schema := 'dev'
-    dest_schema := 'demo'
+  DO $$
+  DECLARE
+    object text;
+    buffer text;
+    source_schema text;
+    dest_schema text;
+    include_recs bool;
+    column_ text;
+    default_ text;
+  BEGIN
+    source_schema := 'public';
+    dest_schema := 'backup';
+    include_recs := TRUE;
     FOR object IN
-      SELECT TABLE_NAME::text 
-        FROM information_schema.tables 
-       WHERE table_schema = quote_ident(source_schema)
-         AND table_type = 'BASE TABLE'
-
-    LOOP
-      buffer := dest_schema || '.' || quote_ident(object);
-      EXECUTE 'CREATE TABLE ' || buffer || ' (LIKE ' || quote_ident(source_schema) || '.' || quote_ident(object) 
-          || ' INCLUDING ALL)';
-
-      IF include_recs 
-        THEN 
-        -- Insert records from source table
-        EXECUTE 'INSERT INTO ' || buffer || ' SELECT * FROM ' || quote_ident(source_schema) || '.' || quote_ident(object) || ';';
-      END IF;
-
-      FOR column_, default_ IN
-        SELECT column_name::text, 
-               REPLACE(column_default::text, source_schema, dest_schema) 
-          FROM information_schema.COLUMNS 
-         WHERE table_schema = dest_schema 
-           AND TABLE_NAME = object 
-           AND column_default LIKE 'nextval(%' || quote_ident(source_schema) || '%::regclass)'
-      LOOP
-        EXECUTE 'ALTER TABLE ' || buffer || ' ALTER COLUMN ' || column_ || ' SET DEFAULT ' || default_;
+    SELECT
+      TABLE_NAME::text
+    FROM
+      information_schema.tables
+    WHERE
+      table_schema = quote_ident(source_schema)
+      AND table_type = 'BASE TABLE' LOOP
+        buffer := dest_schema || '.' || quote_ident(object);
+        EXECUTE 'CREATE TABLE ' || buffer || ' (LIKE ' || quote_ident(source_schema) || '.' || quote_ident(object) || ' INCLUDING ALL)';
+        IF include_recs THEN
+          -- Insert records from source table
+          EXECUTE 'INSERT INTO ' || buffer || ' SELECT * FROM ' || quote_ident(source_schema) || '.' || quote_ident(object) || ';';
+        END IF;
+        FOR column_,
+        default_ IN
+        SELECT
+          column_name::text,
+          REPLACE(column_default::text, source_schema, dest_schema)
+        FROM
+          information_schema.COLUMNS
+        WHERE
+          table_schema = dest_schema
+          AND TABLE_NAME = object
+          AND column_default LIKE 'nextval(%' || quote_ident(source_schema) || '%::regclass)' LOOP
+            EXECUTE 'ALTER TABLE ' || buffer || ' ALTER COLUMN ' || column_ || ' SET DEFAULT ' || default_;
+          END LOOP;
       END LOOP;
-    END LOOP;
-$$ END;
+  END
+  $$;
 #+end_src
 
 ** Foreign Key Constraints
-Now we'll be concerned about is foreign key constraints. This helps define and validate relationships between tables.
+Now we'll be concerned about is [[https://www.postgresql.org/docs/14/ddl-constraints.html#DDL-CONSTRAINTS-FK][foreign key constraints]]. Foreign Key constraints help define and validate relationships between tables.
 
 #+begin_src sql
-    FOR qry IN
-      SELECT 'ALTER TABLE ' || quote_ident(dest_schema) || '.' || quote_ident(rn.relname) 
-                            || ' ADD CONSTRAINT ' || quote_ident(ct.conname) || ' ' || pg_get_constraintdef(ct.oid) || ';'
-        FROM pg_constraint ct
-        JOIN pg_class rn ON rn.oid = ct.conrelid
-       WHERE connamespace = src_oid
-         AND rn.relkind = 'r'
-         AND ct.contype = 'f'
+  FOR qry IN
+  SELECT
+    'ALTER TABLE ' || quote_ident(dest_schema) || '.' || quote_ident(rn.relname) || ' ADD CONSTRAINT ' || quote_ident(ct.conname) || ' ' || pg_get_constraintdef(ct.oid) || ';'
+  FROM
+    pg_constraint ct
+    JOIN pg_class rn ON rn.oid = ct.conrelid
+  WHERE
+    connamespace = src_oid
+    AND rn.relkind = 'r'
+    AND ct.contype = 'f' LOOP
+      EXECUTE qry;
+  END LOOP;
 
-      LOOP
-        EXECUTE qry;
-
-      END LOOP;
 #+end_src
 *** Copying Constraints
 1. Go over all constraints for source schema
@@ -746,17 +1030,20 @@ Now we'll be concerned about is foreign key constraints. This helps define and v
 3. Execute all the queries
 
 **** 0. Get src schema oid
-We only need to get this 
-#+begin_src sql
-    SELECT oid
-      FROM pg_namespace
-     WHERE nspname = quote_ident('public');
+Throughout the following code samples, we need to get the ~oid~ of the source table. So, unlike our main function, we don't have access to that ~oid~ as a variable. To remedy this, we replace any reference to ~src_oid~ with the query to get the ~oid~ at run time.
+#+begin_src SQL
+  SELECT
+    oid
+  FROM
+    pg_namespace
+  WHERE
+    nspname = quote_ident('public');
 #+end_src
 
 **** 1. Get all constraints for source schema
 Postgres has a catalogue called [[https://www.postgresql.org/docs/current/catalog-pg-constraint.html][pg_constraint]] that contains meta-information around all the constraints (foreign_key, primary_key, and exclusion) across the database. Unfortunately, that table is not sufficient to generate our query; we also need access to [[https://www.postgresql.org/docs/current/catalog-pg-class.html][pg_class]] which is a catalogue that keeps meta-information on anything that has a column in Postgres.
 
-In ~pg_constraint~ it a has a column call contype, that describes the type on constraint that the row describes. Ex:
+In ~pg_constraint~ it a has a column called contype, that describes the type on constraint that the row describes. Ex:
   + c = check constraint
   + f = foreign key constraint
   + p = primary key constraint
@@ -780,80 +1067,129 @@ For ~pg_class~, it has a column called relkind that describes the kind of relati
 
 Because we've only really copied over tables, that's all we really care about for kinds of relation ~rn.relkind = 'r'~.
 
-Putting this all together we'd get a query like:
+Putting this all together, we'd get a query like:
 #+NAME: Constraints Query
-#+begin_src sql
-  SELECT rn.relname, ct.conname, ct.oid
-    FROM pg_constraint ct
+#+begin_src SQL
+  SELECT
+    rn.relname,
+    ct.conname,
+    ct.oid
+  FROM
+    pg_constraint ct
     JOIN pg_class rn ON rn.oid = ct.conrelid
-    WHERE connamespace = (SELECT oid
-                          FROM pg_namespace
-                          WHERE nspname = quote_ident('public'))
-     AND rn.relkind = 'r'
-     AND ct.contype = 'f';
+  WHERE
+    connamespace = (
+      SELECT
+        oid
+      FROM
+        pg_namespace
+      WHERE
+        nspname = quote_ident('public'))
+    AND rn.relkind = 'r'
+    AND ct.contype = 'f';
 #+end_src
+
+#+RESULTS: Constraints Query
+| relname                        | conname             |   oid |
+|--------------------------------+---------------------+-------|
+| microposts                     | fk_rails_558c81314b | 16428 |
+| active_storage_attachments     | fk_rails_c3b3935057 | 16458 |
+| active_storage_variant_records | fk_rails_993965df05 | 16476 |
 
 **** 2. Generate a query to create constraints
 
 Postgres has a function, [[https://www.postgresql.org/docs/13/functions-info.html#FUNCTIONS-INFO-CATALOG-TABLE][pg_get_constraintdef,]] that can generate a constraint definition based on an object id.
 
-For example, if we take a row from the constraints query above, we get an OID of ~18403~.
+For example, I took a row from the constraints query above and got an OID of ~16428~.
 #+NAME: Example row from constraints query
 #+BEGIN_EXAMPLE
 | relname                | conname             |   oid |
 |------------------------+---------------------+-------|
-| microposts             | fk_rails_d296c622dc | 16460 |
+| microposts             | fk_rails_d296c622dc | 16428 |
 #+END_EXAMPLE
 
 If we run a select statement on that function...
 #+NAME: Sample constraints definition.
 #+begin_src sql
-SELECT pg_get_constraintdef(16460)
+SELECT pg_get_constraintdef(16428)
 #+end_src
 
 We get the following definition:
+#+RESULTS: Sample constraints definition.
+| pg_get_constraintdef                       |
+|--------------------------------------------|
+| FOREIGN KEY (user_id) REFERENCES users(id) |
 
 We can then put this information with the Constraints Query to generate the query for us:
-#+begin_src sql
-SELECT 'ALTER TABLE ' || quote_ident('backup') || '.' || quote_ident(rn.relname) 
-       || ' ADD CONSTRAINT ' || quote_ident(ct.conname) || ' ' || pg_get_constraintdef(ct.oid) || ';'
-       FROM pg_constraint ct
-       JOIN pg_class rn ON rn.oid = ct.conrelid
-       WHERE connamespace = (SELECT oid
-                             FROM pg_namespace
-                             WHERE nspname = quote_ident('public'))
-         AND rn.relkind = 'r'
-         AND ct.contype = 'f'
-       LIMIT 1;
+#+begin_src SQL
+  SELECT
+    'ALTER TABLE ' || quote_ident('backup') || '.' || quote_ident(rn.relname) || ' ADD CONSTRAINT ' || quote_ident(ct.conname) || ' ' || pg_get_constraintdef(ct.oid) || ';'
+  FROM
+    pg_constraint ct
+    JOIN pg_class rn ON rn.oid = ct.conrelid
+  WHERE
+    connamespace = (
+      SELECT
+        oid
+      FROM
+        pg_namespace
+      WHERE
+        nspname = quote_ident('public'))
+    AND rn.relkind = 'r'
+    AND ct.contype = 'f'
+  LIMIT 1;
 #+end_src
+
+#+RESULTS:
+| ?column?                                                                                                     |
+|--------------------------------------------------------------------------------------------------------------|
+| ALTER TABLE backup.microposts ADD CONSTRAINT fk_rails_558c81314b FOREIGN KEY (user_id) REFERENCES users(id); |
 
 **** 3. Execute generate queries
 Now, we can use a select statement to run a string as a query
-#+begin_src sql
-  SELECT 'ALTER TABLE backup.active_storage_attachments ADD CONSTRAINT fk_rails_c3b3935057 FOREIGN KEY (blob_id) REFERENCES active_storage_blobs(id);'
+#+begin_src SQL
+  SELECT 'ALTER TABLE backup.active_storage_attachments ADD CONSTRAINT fk_rails_d296c622dc FOREIGN KEY (blob_id) REFERENCES active_storage_blobs(id);'
 #+end_src
 
-**** Playground :TODO:VALIDATE:
-#+begin_src sql
-DO $$
+Now, just do that for all foreign keys we need to update. I'll wait ⏰
+**** Playground :todo:still-broken:
+#+begin_src SQL
+  DO $$
+  DECLARE
+    qry text;
+    dest_schema text;
+    src_oid oid;
+    source_schema text;
+  BEGIN
+    dest_schema = 'backup';
+    source_schema = 'public';
+    -- Preamble to get src_oid
+    SELECT
+      oid INTO src_oid
+    FROM
+      pg_namespace
+    WHERE
+      nspname = quote_ident(source_schema);
+    -- the actual work
     FOR qry IN
-      SELECT 'ALTER TABLE ' || quote_ident(dest_schema) || '.' || quote_ident(rn.relname) 
-                            || ' ADD CONSTRAINT ' || quote_ident(ct.conname) || ' ' || pg_get_constraintdef(ct.oid) || ';'
-        FROM pg_constraint ct
-        JOIN pg_class rn ON rn.oid = ct.conrelid
-       WHERE connamespace = src_oid
-         AND rn.relkind = 'r'
-         AND ct.contype = 'f'
-
+    SELECT
+      'ALTER TABLE ' || quote_ident(dest_schema) || '.' || quote_ident(rn.relname) || ' ADD CONSTRAINT ' || quote_ident(ct.conname) || ' ' || pg_get_constraintdef(ct.oid) || ';'
+    FROM
+      pg_constraint ct
+      JOIN pg_class rn ON rn.oid = ct.conrelid
+    WHERE
+      connamespace = src_oid
+      AND rn.relkind = 'r'
+      AND ct.contype = 'f'
       LOOP
         EXECUTE qry;
-
       END LOOP;
-END $$;
+  END
+  $$;
 #+end_src
 
 ** Views
-A [[https://www.postgresql.org/docs/14/tutorial-views.html][view]] in SQL is a way of saving query a query that you expect to be running over and over again.
+In step 5, we will copy all of the views defined in the source schema into the destination schema. If you are new to the "advanced" SQL concept of a [[https://www.postgresql.org/docs/14/tutorial-views.html][view]]; it is a way of naming a query that you expect to be running over and over again.
 
 #+begin_src sql
     FOR object IN
@@ -873,11 +1209,11 @@ A [[https://www.postgresql.org/docs/14/tutorial-views.html][view]] in SQL is a w
     END LOOP;
 #+end_src
 
-If you have a database with views the steps would be as follow:
+If you have a database with views, the steps would be as follow:
 1. Loops over each view in ~information_schema.views~
-2. Use the view definition, that is stored in the view catalog, to define the view in the destination schema
+2. Use the view definition that is stored in the view catalogue to define the view in the destination schema
    
-Aye, but there's the rub. Our data set is a bit basic and doesn't include view and functions. So we'll build some as we go.
+Aye, but there's the rub. Our data set is basic and doesn't include views or functions. So we'll build some as we go.
 
 *** Precursor
 But before we can do that let's be absolutely sure that we don't have any views stored in our view catalog.
@@ -887,9 +1223,13 @@ But before we can do that let's be absolutely sure that we don't have any views 
        WHERE table_schema = quote_ident('public')
 #+end_src
 
+#+RESULTS:
+| table_name |
+|------------|
+
 *** Creating our view
 
-In our example we'll create a view for all microposts created by a certain user.
+In our example, we'll create a view for all microposts created by a particular user.
 
 #+NAME: Creating a new view
 #+begin_src sql
@@ -899,28 +1239,32 @@ In our example we'll create a view for all microposts created by a certain user.
         WHERE users.id = (SELECT id FROM users LIMIT 1)
 #+end_src
 
+#+RESULTS: Creating a new view
+| CREATE VIEW |
+|-------------|
+
 Now, lets validate that it works
 #+NAME: Test our view
 #+begin_src sql
 SELECT * FROM first_users_posts LIMIT 10
 #+end_src
 
-#+RESULTS:
-| content                                | created_at                 | name         |
-|----------------------------------------+----------------------------+--------------|
-| Minus officia perspiciatis hic beatae. | 2021-11-23 05:52:47.384011 | Example User |
-| Minus officia perspiciatis hic beatae. | 2021-11-23 05:52:47.399006 | Example User |
-| Minus officia perspiciatis hic beatae. | 2021-11-23 05:52:47.419306 | Example User |
-| Minus officia perspiciatis hic beatae. | 2021-11-23 05:52:47.438467 | Example User |
-| Minus officia perspiciatis hic beatae. | 2021-11-23 05:52:47.456818 | Example User |
-| Minus officia perspiciatis hic beatae. | 2021-11-23 05:52:47.475834 | Example User |
-| Sed ab sed voluptas sit.               | 2021-11-23 05:52:47.492691 | Example User |
-| Sed ab sed voluptas sit.               | 2021-11-23 05:52:47.506167 | Example User |
-| Sed ab sed voluptas sit.               | 2021-11-23 05:52:47.520004 | Example User |
-| Sed ab sed voluptas sit.               | 2021-11-23 05:52:47.533737 | Example User |
+#+RESULTS: Test our view
+| content                              | created_at                 | name         |
+|--------------------------------------+----------------------------+--------------|
+| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.07503  | Example User |
+| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.085981 | Example User |
+| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.093539 | Example User |
+| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.099877 | Example User |
+| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.106309 | Example User |
+| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.112993 | Example User |
+| Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.119943 | Example User |
+| Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.126818 | Example User |
+| Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.133882 | Example User |
+| Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.140942 | Example User |
 
 *** Collecting the views
-Now with all the dirty work done, we need to loop over all of the views in our catalog. Luckily we've already seen the primary tool for that. Let's just limit our selection to one, so it's easier to go through this step by step.
+With all the dirty work done, we need to loop over all of the views in our catalogue. Luckily we've already seen the primary tool for that. Again, we'll be limiting our selection to one, so it's easier to follow along and go through this step by step.
 
 #+NAME: Select one view
 #+begin_src sql
@@ -930,48 +1274,103 @@ Now with all the dirty work done, we need to loop over all of the views in our c
        LIMIT 1
 #+end_src
 
-#+RESULTS:
+#+RESULTS: Select one view
 | table_name        |
 |-------------------|
 | first_users_posts |
 
 *** Copying views
-Great, we've got a view name. Now we can use that name to build up the name of the view for the destination schema
+Great, we've got a view name. Now we can use that name to build up the name of the view for the destination scheme:
 
 #+NAME: Naming the view
-#+begin_src sql
+#+begin_src SQL
 SELECT 'backup' || '.' || quote_ident('first_users_posts');
 #+end_src
 
-Now that we've generated the name we need to get the view definition
-#+begin_src sql
+#+RESULTS: Naming the view
+| ?column?                 |
+|--------------------------|
+| backup.first_users_posts |
+
+Now that we've generated the name, we need to get the view definition:
+#+NAME: View a definition
+#+begin_src SQL
       SELECT view_definition
         FROM information_schema.views
        WHERE table_schema = quote_ident('public')
          AND table_name = quote_ident('first_users_posts');
 #+end_src
 
-And then, finally, we can use these pieces of information to copy the view.
+#+RESULTS: View a definition
+| view_definition                       |
+|---------------------------------------|
+| SELECT microposts.content,            |
+| microposts.created_at,                |
+| users.name                            |
+| FROM microposts,                      |
+| users                                 |
+| WHERE (users.id = ( SELECT users_1.id |
+| FROM users users_1                    |
+| LIMIT 1));                            |
 
+And then, finally, we can use these pieces of information to copy the view.
 #+begin_src sql
-EXECUTE 'CREATE OR REPLACE VIEW ' || 'backup' || '.' ||
-        quote_ident('first_users_posts') || ' AS ' ||
-        (SELECT view_definition
-         FROM information_schema.views
-         WHERE table_schema = quote_ident('public')
-         AND table_name = quote_ident('first_users_posts')) || ';'
+  DO $$
+  BEGIN
+    EXECUTE 'CREATE OR REPLACE VIEW ' || 'backup' || '.' || quote_ident('first_users_posts') || ' AS ' || (
+      SELECT
+        view_definition
+      FROM
+        information_schema.views
+      WHERE
+        table_schema = quote_ident('public')
+        AND table_name = quote_ident('first_users_posts')) || ';';
+  END
+  $$;
+#+end_src
+*** Playground
+#+begin_src sql
+  DO $$
+  DECLARE
+    object text;
+    source_schema text;
+    dest_schema text;
+    buffer text;
+    v_def text;
+  BEGIN
+    source_schema := 'public';
+    dest_schema := 'backup';
+    FOR object IN
+    SELECT
+      table_name::text
+    FROM
+      information_schema.views
+    WHERE
+      table_schema = quote_ident(source_schema)
+      LOOP
+        buffer := dest_schema || '.' || quote_ident(object);
+        SELECT
+          view_definition INTO v_def
+        FROM
+          information_schema.views
+        WHERE
+          table_schema = quote_ident(source_schema)
+          AND table_name = quote_ident(object);
+        EXECUTE 'CREATE OR REPLACE VIEW ' || buffer || ' AS ' || v_def || ';';
+      END LOOP;
+  END
+  $$;
 #+end_src
 
-
 ** Functions
-And this is where we are going to get ~Meta~. We're going to talk about a cloning functions while dissecting our cloning function.
+And this is where we are going to get ~Meta~. We will talk about a cloning function while dissecting our cloning function.
 
 #+begin_quote
-For those reading this not in 2021, Facebook changed their name to Meta this year so I wanted to make a bad pun. But instead of you being able to chortle at that you now have to read this long winded explanation.
+For those reading this, not in 2022, Facebook recently changed their name to Meta, so I wanted to make a bad pun. But instead of you being able to chuckle at that, you now have to read this long-winded explanation.
 #+end_quote
 
 Now, the final part in question that we're interested in is:
-#+begin_src sql
+#+begin_src SQL
     FOR func_oid IN
       SELECT oid
         FROM pg_proc 
@@ -986,9 +1385,9 @@ Now, the final part in question that we're interested in is:
 
     RETURN; 
 #+end_src
-*** Getting a (list) of functions
+*** Generating a list of functions
 
-You _could_ scroll all the way back to the page copy and paste it in psql
+We need at least one function to clone, so why not add the function that this article is about? You _could_ scroll all the way back to the page, copy and paste it in your psql or pgAdmin or whatever you're using to follow along... or you could do what the uncool kids are doing and evaluate the following expression in Emacs.
 #+begin_src emacs-lisp
   (org-sbe clone_schema_func)
 #+end_src
@@ -1000,12 +1399,22 @@ Now, we can search for all functions in our current schema
         WHERE proname = 'clone_schema'
 #+end_src
 
+#+RESULTS:
+|   oid | proname      | pronamespace |
+|-------+--------------+--------------|
+| 16675 | clone_schema |         2200 |
+
 We can do the same as our base query by getting the object id of our current schema...
-#+begin_src sql
+#+begin_src SQL
 SELECT oid
       FROM pg_namespace
      WHERE nspname = 'public'
 #+end_src
+
+#+RESULTS:
+|  oid |
+|------|
+| 2200 |
 
 and to put that together
 
@@ -1017,58 +1426,108 @@ and to put that together
                               WHERE nspname = 'public')
 #+end_src
 
-Isn't this easier when we're inside a function and have access to variables? oh and we have loops?
+#+RESULTS:
+|   oid | proname         | pronamespace |
+|-------+-----------------+--------------|
+| 16497 | check_existence |         2200 |
+| 16675 | clone_schema    |         2200 |
 
+#+BEGIN_QUOTE
+Wouldn't this be a lot easier when we're inside a function and have access to variables? Oh, and we have loops?
+#+END_QUOTE
 
-Now the next part is we want to loop over every func_oid returned from the query and:
-1. get it's function definition
-2. replace every reference to source_schema with dest_schema within that function
-3. then execute that function definition as a query.
+*** Copying Functions
+
+Now that we have ensured we have data to play with, we now need to: 
+1. get all function definitions
+2. replace every reference to source_schema with dest_schema within those functions
+3. execute all function definitions as queries.
 
 **** Step 1
 Get a function defition from a func_oid
 #+begin_src sql :results drawer
-SELECT pg_get_functiondef(16496);
+SELECT pg_get_functiondef(16675);
 #+end_src
+
+#+BEGIN_QUOTE
+This section omitted for brevity.
+#+END_QUOTE
+
 **** Step 2
+Use the [[https://www.postgresql.org/docs/14/functions-string.html][replace]] function to change the schema name references
 #+begin_src sql :results drawer
-SELECT replace((SELECT pg_get_functiondef(16496)), 'public', 'enemy_number_1');
+SELECT replace((SELECT pg_get_functiondef(16675)), 'public', 'backup');
 #+end_src
+
+#+BEGIN_QUOTE
+This section omitted for brevity
+#+END_QUOTE
+
 **** Step 3
-Now we need to do a little bit of magic and wrap our Execute call in an anonymous function to run. 
+Now we need to do a little bit of magic and wrap our Execute call in an anonymous function to ensure it runs. 
 #+begin_src sql
-DO $$
-BEGIN
-
-EXECUTE replace((SELECT pg_get_functiondef(16496)), 'public', 'enemy_number_1');
-
-END$$
-
+  DO $$
+  BEGIN
+    EXECUTE replace((
+      SELECT
+        pg_get_functiondef(16675)), 'public', 'backup');
+    END$$
 #+end_src
 
 I am not sure why the above works and below gives us an error talking about how the prepared statement replace does not exist.
 #+begin_src sql
-EXECUTE replace((SELECT pg_get_functiondef(16496)), 'public', 'enemy_number_1');
+EXECUTE replace((SELECT pg_get_functiondef(16496)), 'public', 'backup');
 #+end_src
 
-#+RESULTS:
-|---|
-
-But then we can search for this cloned function in the new schema
+But ignoring that, then we can validate our work by searching for this cloned function in the new schema
 #+begin_src sql
       SELECT oid, proname, pronamespace
         FROM pg_proc
         WHERE pronamespace = (SELECT oid
                               FROM pg_namespace
-                              WHERE nspname = 'enemy_number_1')
+                              WHERE nspname = 'backup')
 #+end_src
 
-#+RESULTS:
-|   oid | proname      | pronamespace |
-|-------+--------------+--------------|
-| 16621 | clone_schema |        16512 |
+*** Playground
+#+begin_src sql
+  DO $$
+  DECLARE
+    func_oid oid;
+    src_oid oid;
+    qry text;
+    dest_qry text;
+    source_schema text;
+    dest_schema text;
+  BEGIN
+    source_schema := 'public';
+    dest_schema := 'backup';
+    SELECT
+      oid INTO src_oid
+    FROM
+      pg_namespace
+    WHERE
+      nspname = quote_ident(source_schema);
+    FOR func_oid IN
+    SELECT
+      oid
+    FROM
+      pg_proc
+    WHERE
+      pronamespace = src_oid LOOP
+        SELECT
+          pg_get_functiondef(func_oid) INTO qry;
+        SELECT
+          replace(qry, source_schema, dest_schema) INTO dest_qry;
+        EXECUTE dest_qry;
+      END LOOP;
+    RETURN;
+  END
+  $$;
+
+#+end_src
+
 ** Fin
-And that, in essence, is how you copy one schema into the next. I think that was pretty simple... you know once your broke it down.
+And that, in essence, is how you copy one schema into the next. I think that was pretty simple... you know, once it's been broken down into a bunch of small readable chunks that you can easily play with.
 
 ** Footnotes
 [fn:1]Why log_cnt exists is kind of interesting. https://stackoverflow.com/a/66458412
