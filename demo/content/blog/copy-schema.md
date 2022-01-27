@@ -1,9 +1,8 @@
 +++
-title = "My first post"
-date = 2019-11-27
+title = "How I sped up demo data generation by 97%"
+author = "Justin Barclay"
+date = 2022-01-25
 +++
-
-# How I sped up demo data generation by 97%
 
 > This blog is meant as a playground. I find it best to play with code
 > and see how it really works. In fact, that was most of the impetus for
@@ -17,7 +16,7 @@ date = 2019-11-27
 
 TLDR; Move from ruby and rails to SQL
 
-<img src="https://www.publicdomainpictures.net/pictures/20000/velka/surprise-surprise.jpg" title="Colour me surprised" alt="&quot;A women feigning surprise&quot;" height="300" />
+<img src="https://www.publicdomainpictures.net/pictures/20000/velka/surprise-surprise.jpg" title="A woman feigning surprise" alt="&quot;A woman feigning surprise&quot;" width="400" />
 
 # Why work on this?
 

@@ -4,14 +4,14 @@
 
 * How I sped up demo data generation by 97%
 #+BEGIN_QUOTE
-This blog is meant as a playground. I find it best to play with code and see how it really works. In fact, that was most of the impetus for writing this in general; I wrote it as I explored and tried to understand the function. As such, I've broken out _most_ of the SQL so that you can paste it in a psql REPL and play around with it. Or if you're a cool kid, like me 😎, you can read use this as a literate playground in Emacs and org-mode.
+I find it best to play with code to see how it really works. So this post is meant as a playground. In fact, that was most of the impetus for writing this in general; I wrote it as I explored and tried to understand the function. As such, I've broken out _most_ of the SQL so that you can paste it in a psql REPL and play around with it. Or if you're a cool kid, like me 😎, you can read use this as a literate playground in Emacs and org-mode.
 #+END_QUOTE
 ** ...or how I chose to copy data instead of generating it
 TLDR; Move from ruby and rails to SQL
 
-#+NAME: Colour me surprised
-#+attr_html: :height 300px
-#+attr_html: :alt "A women feigning surprise"
+#+NAME: A woman feigning surprise
+#+attr_html: :width 400px
+#+attr_html: :alt "A woman feigning surprise"
 [[https://www.publicdomainpictures.net/pictures/20000/velka/surprise-surprise.jpg]]
 * Why work on this?
 :PROPERTIES:
