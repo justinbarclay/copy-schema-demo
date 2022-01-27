@@ -18,33 +18,33 @@ TLDR; Move from ruby and rails to SQL
 :HEADER: hidden
 :END:
 
-For a project at work, I was working on a system that would seed a schema with a large set of data for each system's new user. Why each user got their own schema isn't that important. What was important was that this operation would take 15 minutes in our production environment and, on my dev machine, 30 minutes in a development. We eventually did some optimizations to the process where instead of inserting data one query at a time, we would bulk insert data, which easily shaved our times in half. But this wasn't enough for me, and I felt like we could do better.
+At work, I was working on a project that would seed a new schema with a large set of data for each new client. This operation would take 10 minutes in our production environment and, on my poor dev machine, it would take upwards of 30 minutes in a development environment. We did implement some easly optimizations to the process, where instead of inserting data one query at a time, we shaved our process time by half when we started bulk inserting rows. But this wasn't enough for me, and I felt like we could do better.
 
 #+BEGIN_QUOTE
 I can hear you saying... "30 minutes? That's insane. How did you let it get so bad?" Look, mistakes were made, OK? But I am trying to learn from them out in the open. And in this case, I'm looking to take you along this specifically painful journey.
 #+END_QUOTE
 
-So, knowing that this could be done better, I did some research. Can we move a lot of this initial logic from Ruby to SQL somehow? I thought about just generating all the seed data in pure SQL and running those seed files whenever we needed to seed a schema. That seemed messy and unmaintainable, not only because I like maintaining Ruby over SQL but because we had some highly related data, which would mean importing some of our business logic into these seed files to maintain those relationships.
+So, knowing that this could be done better, I did some research. Can we move a lot of this initial logic from Ruby to SQL somehow? I thought about just generating all the seed data in pure SQL and running those seed files whenever we needed to seed a schema. That seemed messy and unmaintainable, not only because I like maintaining Ruby over SQL but because we had some highly related data, which would mean importing some of our business logic into these seed files to maintain those relationships. Could we export a copy of a schema and then import the entire schema based on some script? I found ~pg_dump~ which could export schema structures, or you could dump and load an entire database. But my initial search didn't find anything around exporting and re-importing a schema _and_ it's data.
 
-Instead, I chose to dive deeper. Eventually, that led me on a short journey onto the PostgreSQL wiki. I found an [[https://wiki.postgresql.org/wiki/Clone_schema][article]] that talked about cloning the data from one schema onto another schema. I thought that was brilliant. We could maintain our seed data generation process in Ruby, import it into a demo data schema, and then clone from that schema whenever we instantiated a new schema for a user. And this article was really close to what I wanted, but it did not clone metadata about those tables. So, that meant that we were missing essential things like sequences and foreign key relations when we cloned. Luckily this article referenced a more complete [[https://www.postgresql.org/message-id/CANu8FiyJtt-0q%3DbkUxyra66tHi6FFzgU8TqVR2aahseCBDDntA%40mail.gmail.com][mailing list post]] that goes over how to copy all the data, including metadata, from a source schema into a brand new destination schema.
+Instead, I chose to dive deeper. That led me on a short journey into the PostgreSQL wiki. I found an [[https://wiki.postgresql.org/wiki/Clone_schema][article]] that talked about cloning the data from one schema onto another schema. I thought that was brilliant. We could maintain our seed data generation process in Ruby, import it into a demo data schema, and then clone from that schema whenever we instantiated a new schema for a user. And this article was really close to what I wanted, but it did not clone some key information about those table. So, that meant that we were missing essential things like sequences and foreign key relations when we cloned schemas. Luckily this article referenced a more complete [[https://www.postgresql.org/message-id/CANu8FiyJtt-0q%3DbkUxyra66tHi6FFzgU8TqVR2aahseCBDDntA%40mail.gmail.com][mailing list post]] that goes over how to copy all the data, including metadata, from a source schema into a destination schema.
 
 * Using Pure SQL to Copy
-When I started this adventure in optimization, I knew very little about SQL and less so the variant we use, PSQL. I knew enough to write some select statements and maybe do a join or two. But I never really considered it a Turing Complete language 🤯. I mean... It's not pretty, but it works.
+When I started this adventure, I knew very little about SQL and less so the variant we use, PL/pgSQL. I knew enough to write some select statements and maybe do a join or two. But I never really considered it for anything more. But, apparently, it's a Turing Complete language 🤯. I mean... It's not pretty, but it works.
 
 Now, I had a pretty good idea of what I wanted to do from a high level. We want to use a schema, called ~demo~, to cache any demo data generation. Then, when we want to populate an account schema with demo data, we copy data from the ~demo~ schema into the client schema.
 
-I knew that the function presented on that mailing list was supposed to do what I wanted. But I understood almost none of the code. What sort of developer would I be if I blindly copied and pasted this code into production? So, instead, I read through this code line by line, and I teased it apart until I could understand it. Now, I want to explain this code very explicitly to you. You. My one reader. I mean, how else can you know you know something unless you explain it to someone else?
+I knew that the function presented on that mailing list was supposed to do what I wanted. But I understood almost none it. What sort of developer would I be if I blindly copied and pasted this code into production? So, I read through function line by line. I poked and prodded and teased it apart until I could understand it. Now, I want to explain this code very explicitly to you. You, my one reader. My one, lovely endearing reader. How else can I prove that I understand  something unless I can explain it to someone else?
 
 ** Syntax Preamble
-Before I scare you with a lovecraftian horror of SQL, a 200 line function cloning one schema into a brand new schema, I need to lay some groundwork. I said you need to know ~SELECT~ and ~INSERT~ but now I need to talk to you about functions. This whole mess of an article is based on SQL functions. You should know what they are, what they look like, what part of your brain they like to gnaw on at 3 am.
+Before I scare you with a lovecraftian horror of SQL, a behemoth 200 line schema cloning function, I need to lay some groundwork. I said you need to know ~SELECT~ and ~INSERT~ but now I need to talk to you about functions. This mess of an article is based on understanding a single SQL function and I use SQL functions to play with singular concepts. So, you should know what they are, what they look like, what part of your brain they like to gnaw on at 3 am.
 #+BEGIN_QUOTE
-If a horror monster does not go after the amydala first, the fear centre of the brain, they're doing it wrong.
+Authors note: If you have something gnawing on your amygdala at 3am it's probable some sort of horror novel and I suggest you seek a witch doctor or take some invermectin.
 #+END_QUOTE
 
 *** SQL Functions
-Outlined below is a simple version of the function syntax. Some items are optional, like, you don't need to have an ~OR~ or a ~REPLACE~, you don't need to have any arguments, and you don't have to declare any variables.
+In the code block below is a simple version of the function syntax. Some items are optional, like, you don't need to have an ~OR~ or a ~REPLACE~, you don't need to have any arguments, and you don't have to declare any variables.
 
-You have to say you're creating a function with some name and that it has a body, and then you can do 0 or more things in that body.
+What you do have to do is say you're creating a function with some name and that it has a body, and then you can do 0 or more things in that body.
 #+begin_src sql
   CREATE OR REPLACE FUNCTION demo_func(
 
@@ -59,6 +59,16 @@ You have to say you're creating a function with some name and that it has a body
   BEGIN
   --  ...
   END;
+  $BODY$
+#+end_src
+
+This is the minimal function I could write to make Postgres happy. But it's not very demonstrative so thats why I decided to show the above code block and why I did not talk about the below code block.
+#+begin_src sql
+  CREATE FUNCTION func ()
+      RETURNS void
+      AS $BODY$
+  BEGIN
+  END
   $BODY$
 #+end_src
 
@@ -99,10 +109,15 @@ NOTICE:  Counter: 4
 NOTICE:  Counter: 5
 #+end_src
 
-For loops, in general, can work across an iterable item, be it a range, array, or query results.
+For loops, in general, can work across any iterable item, be it a range, array, or query results.
 
 ** Love and War and Cthulu
 For those who just want to see and play with occult artifacts before they understand them, here you are. Though I warn you, this incantation may not summon Cthulu but it probably would summon something like Azathoth.
+
+#+BEGIN_QUOTE
+The function above is slightly modified from the version found on the mailing list. Mainly, it has been modified to work in modern versions of Postres IE. 10 and above.
+#+END_QUOTE
+
 #+Name: clone_schema_func
 #+begin_src sql
   -- Function: clone_schema(text, text)
@@ -296,15 +311,10 @@ For those who just want to see and play with occult artifacts before they unders
     OWNER TO postgres;
 #+end_src
 
-#+BEGIN_QUOTE
-The function above is slightly modified from the version found on the mailing list. Mainly, it has been modified to work in modern versions of Postres IE. 10 and above.
-#+END_QUOTE
-
-
 Woh, insane, right? That's a lot of SQL, and there are words like CREATE and OR and LOOP in there. I need to step back and go section by section to grasp this.
 
 #+BEGIN_QUOTE
-I am done with the jokes and the Cthulu and the like. This is a serious learning article, we need to be serious to be taken serious.
+I am done with the jokes and the Cthulu and the like. This is a serious learning article, we need to be serious to be taken seriously.
 #+END_QUOTE
 
 * Let's break it down
