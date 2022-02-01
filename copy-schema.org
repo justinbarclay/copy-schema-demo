@@ -33,10 +33,11 @@ When I started this adventure, I knew very little about SQL and less so the vari
 
 Now, I had a pretty good idea of what I wanted to do from a high level. We want to use a schema, called ~demo~, to cache any demo data generation. Then, when we want to populate an account schema with demo data, we copy data from the ~demo~ schema into the client schema.
 
-I knew that the function presented on that mailing list was supposed to do what I wanted. But I understood almost none it. What sort of developer would I be if I blindly copied and pasted this code into production? So, I read through function line by line. I poked and prodded and teased it apart until I could understand it. Now, I want to explain this code very explicitly to you. You, my one reader. My one, lovely endearing reader. How else can I prove that I understand  something unless I can explain it to someone else?
+I knew that the function presented on that mailing list was supposed to do what I wanted. But I understood almost none it. What sort of developer would I be if I blindly copied and pasted this code into production? So, I read through function line by line. I poked and prodded and teased it apart until I could understand it. Now, I want to explain this code very explicitly to you. You, my one reader. My one, lovely, endearing reader. How else can I prove that I understand  something unless I can explain it to someone else?
 
 ** Syntax Preamble
-Before I scare you with a lovecraftian horror of SQL, a behemoth 200 line schema cloning function, I need to lay some groundwork. I said you need to know ~SELECT~ and ~INSERT~ but now I need to talk to you about functions. This mess of an article is based on understanding a single SQL function and I use SQL functions to play with singular concepts. So, you should know what they are, what they look like, what part of your brain they like to gnaw on at 3 am.
+Before I scare you with a lovecraftian horror of SQL, a behemoth 200 line schema cloning function, I need to lay some groundwork. I expect that you'll have some SQL knowledge. Like you'll have used ~SELECT~ and ~INSERT~ and ~JOINS~ and know what a SQL Schema is. Maybe, you haven't heard functions though. And This mess of an article is based on understanding a single SQL function and I use SQL functions to play with singular concepts. So, you should know what they are, what they look like, what part of your brain they like to gnaw on at 3 am.
+
 #+BEGIN_QUOTE
 Authors note: If you have something gnawing on your amygdala at 3am it's probable some sort of horror novel and I suggest you seek a witch doctor or take some invermectin.
 #+END_QUOTE
@@ -318,9 +319,11 @@ I am done with the jokes and the Cthulu and the like. This is a serious learning
 #+END_QUOTE
 
 * Let's break it down
-#+BEGIN_COMMENT
+#+BEGIN_QUOTE
 Some of my examples will include chunks of code wrapped in a function definition. We can easily mimic the calling environment, call special syntax, or get some lovely printout here in org-mode. That means, for the most part, things being functions are an implementation detail and can be safely ignored.
-#+END_COMMENT
+
+All examples provided are based on a [[https://hub.docker.com/repository/docker/justinbarclay/clone-schema-demo_beta][this]] docker image, which is a in turn the schema from the wonderful [[https://www.railstutorial.org/book][Ruby on Rails]] tutorial by Michael Hartl.
+#+END_QUOTE
 ** Metaprogramming in Postgres
 #+begin_src SQL
 SELECT * FROM pg_namespace;
@@ -328,9 +331,9 @@ SELECT * FROM pg_namespace;
 
 Postgres keeps a table of information about itself and its state, and they call the collection of metadata [[https://www.postgresql.org/docs/13/catalogs.html][systems catalogue]]. Generally, these tables are prefixed with ~pg~. For example, [[https://www.postgresql.org/docs/13/catalog-pg-namespace.html][pg_namespace]] is a table that contains information about all schemas stored in the database.
 
-** Operating on Schemas
+** Schemas
 I assume you know about Schemas because this is a blog post on how to clone one schema to another. However, if you're new to SQL or have never needed to concern yourself with schemas before, visit [[https://www.postgresql.org/docs/current/ddl-schemas.][here]] to find out more.
-*** Check for schema existence
+*** Checking for the existence of schema
 Knowing about the existence of ~pg_namespace~ gives us the ability to understand the first section of code:
 #+begin_src SQL
 -- Check that source_schema exists
@@ -357,8 +360,9 @@ Knowing about the existence of ~pg_namespace~ gives us the ability to understand
 #+end_src
 
 Unfortunately, we can't really run that as pure SQL in its current form. So instead, we need to make it a function so we can normalize the results:
+
 #+NAME: Check that source_schema exists
-#+begin_src SQL
+#+begin_src SQL :exports none
   CREATE OR REPLACE FUNCTION check_existence(
     source_schema text)
     RETURNS bool AS $BODY$
@@ -381,10 +385,6 @@ Unfortunately, we can't really run that as pure SQL in its current form. So inst
   COST 100;
 #+end_src
 
-#+RESULTS: Check that source_schema exists
-| CREATE FUNCTION |
-|-----------------|
-
 And then, we can test it to see if a schema does exist:
 #+begin_src SQL
   SELECT check_existence('public');
@@ -403,11 +403,13 @@ We can also check for the non-existence of a schema:
 #+end_src
 
 #+RESULTS: Check that the dest schema doesn't exist
-|---|
+| check_existence |
+|-----------------|
+| f               |
 
 *** Creating a schema
-Great, now we know that the ~backup~ schema doesn't exist. Let's make one. Luckily, creating a schema is pretty easy:
-#+begin_src SQL
+Great, now we know that the ~backup~ schema doesn't exist. Let's make one. Creating a schema is pretty easy:
+#+begin_src SQL :exports none
  CREATE SCHEMA backup;
 #+end_src
 
@@ -426,7 +428,7 @@ Now we can use our function to verify:
 | t               |
 
 ** Sequences
-The next step in copying one schema to another is to copy all of the [[https://www.postgresql.org/docs/14/sql-createsequence.html][Sequences]]:
+The next step in copying one schema to another is to copy all of the [[https://www.postgresql.org/docs/14/sql-createsequence.html][sequences]]:
 #+begin_src SQL
   FOR object IN
   SELECT
@@ -480,16 +482,16 @@ The next step in copying one schema to another is to copy all of the [[https://w
 
   END LOOP;
 #+end_src
-
+ Woh, that's a lot to read. Let's break it down.
 *** What is a Sequence
-A Sequence is a special table that generates some sequence of numbers. For instance, Sequences are often used for generating the index values for a table.
+A sequence is a special table that generates some sequence of numbers. For instance, Sequences are often used for generating the index values for a table.
 *** Copying Sequence and Values
 When copying sequences, we're looking to: 
 1. Get all sequence names from the source schema
 2. Copy selected sequence names into dest schema
 3. Populate them with metadata from source sequences
 4. Update destination schema number to match source schema numbers
-**** 1. Get All Sequence Names
+*** 1. Get All Sequence Names
 If we query Postgres for all sequences attached to the public table:
 #+begin_src SQL
   SELECT sequence_name::text 
@@ -523,8 +525,9 @@ Beautiful:
 #+RESULTS:
 | sequence_name |
 |---------------|
+|               |
 
-**** 2. Create Sequence
+*** 2. Create Sequence
 Creating a list of sequences looks like this:
 #+begin_src SQL
   FOR object IN
@@ -540,16 +543,16 @@ Creating a list of sequences looks like this:
   END LOOP;
 #+end_src
 
+#+BEGIN_QUOTE
+The more astute of our reader's will notice that we are seeing some new syntax here. [[https://www.postgresql.org/docs/current/plpgsql-statements.html#PLPGSQL-STATEMENTS-EXECUTING-DYN][Execute]], executes a command string. In our case a command-string will be a dynamic SQL command where we interpolate some variables like source schema and destination schema.
+#+END_QUOTE
+
 Generally, in a schema, there are a lot of sequences. One for each table with an index. So, let's zoom in on one sequence and follow it through the process.
 
 From the code above, where you see ~object~, we will replace it with ~microposts_id_seq'~, one of the values from the above select statement.
-#+begin_src sql
+#+begin_src sql :exports none
   CREATE SEQUENCE backup.microposts_id_seq;
 #+end_src
-
-#+RESULTS:
-| CREATE SEQUENCE |
-|-----------------|
 
 And let's take a look at what we made
 #+begin_src sql
@@ -563,7 +566,7 @@ And let's take a look at what we made
 
 We made a table that stores values for last_value, log_cnt[fn:1], and is_called[fn:2].
 
-**** 3. Copy Sequence Values
+*** 3. Copy Sequence Values
 Now we're going to fake it a little bit to see what the following statement is doing more easily.
 
 We can translate:
@@ -614,9 +617,9 @@ Now because of how SQL works, we have to convert data. So we translate the value
 
 If we go to the table above, we can see that ~sq_is_cycled~ is false, which means ~sq_cycled~ is set to ~'NO CYCLE'~.
 
-#+begin_comment
+#+begin_quote
  Note: because the code above requires variables, we can't run this outside of a function, so we just have to evaluate it inside our heads.
-#+end_comment
+#+end_quote
 
 So now we want to copy over the data from ~public.microposts_id_seq~ to ~backup.microposts_id_seq~
 #+begin_src sql
@@ -649,7 +652,7 @@ Now, we can run the same select query to get data about a sequence to verify tha
 |---------------------+----------------+-----------------+--------------+----------------+--------------|
 | 9223372036854775807 |              1 |               1 |            1 |              1 | f            |
 
-**** 4. Update sequence to match current values
+*** 4. Update sequence to match current values
 Then because we're cloning both meta information and records themselves, we want to make sure our sequence values align with the ~public~'s sequence values.
 
 #+begin_src sql
@@ -660,7 +663,7 @@ Then because we're cloning both meta information and records themselves, we want
   sq_is_called;
 #+end_src
 
-So, now we need to get the current state of the sequence for microposts_id_seq
+So, now we need to get the current state of the sequence for ~microposts_id_seq~:
 #+begin_src sql
   SELECT
     last_value AS sq_last_value,
@@ -675,7 +678,7 @@ So, now we need to get the current state of the sequence for microposts_id_seq
 |---------------+------------+--------------|
 |           300 |         30 | t            |
 
-and update the ~backup~ schema
+And update the ~backup~ schema
 #+begin_src sql
   EXECUTE 'SELECT setval( ''' || buffer || ''', ' || sq_last_value || ', ' || sq_is_called || ');'
 #+end_src
@@ -691,10 +694,10 @@ Which we can trivially translate to:
 |--------|
 |    300 |
 
-***** Let's quickly verify our work
+**** Let's quickly verify our work
 If we call nextval on ~public.microposts_id_seq~ and ~backup.microposts_id_seq~ they should produce the same results.
 
-#+begin_src sql
+#+begin_src sql :exports both
   SELECT
     nextval('public.microposts_id_seq');
 #+end_src
@@ -704,7 +707,7 @@ If we call nextval on ~public.microposts_id_seq~ and ~backup.microposts_id_seq~ 
 |---------|
 |     301 |
 
-#+begin_src sql
+#+begin_src sql :exports both
   SELECT
     nextval('backup.microposts_id_seq');
 #+end_src
@@ -714,7 +717,7 @@ If we call nextval on ~public.microposts_id_seq~ and ~backup.microposts_id_seq~ 
 |---------|
 |     301 |
 
-**** Playground
+*** Playground
 And now we just do that like... 50 more times.
 
 #+begin_src sql
