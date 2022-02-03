@@ -785,7 +785,7 @@ And now we just do that like... 50 more times.
 #+end_src
 
 ** Tables
-For step 2 of our 5 step plan, we need to copy tables. This includes their data and metadata. The section of the ~clone_schema~ function that deals with cloning tables is:
+For step 3 of our 6 step plan, we need to copy tables. This includes their data and metadata. The section of the ~clone_schema~ function that deals with cloning tables is:
 #+begin_src SQL
   FOR object IN
       SELECT TABLE_NAME::text 
@@ -827,11 +827,12 @@ Reading through the SQL above, we can see 4 main tasks ahead of us:
 3. Copy data from the source schema's tables into the new schema's tables
 4. Update Default/Sequence values for appropriate columns
 
-**** 1. Get all tables
+*** 1. Get all tables
 We want to iterate over all the tables in a schema. But how do we get that information? Luckily, Postgres has meta-programming facilities based around schema's called [[https://www.postgresql.org/docs/current/information-schema.html][information_schema]] which has a [[https://www.postgresql.org/docs/13/sql-createview.html][view]] specifically for [[https://www.postgresql.org/docs/current/infoschema-tables.html][tables]].
 
-In short if we run a command like below, we can get a list of all table names that are in the public schema.
-#+begin_src sql
+
+We can get a list of all table names that are in the public schema, if we run the command below.
+#+begin_src sql :exports both
   -- FOR OBJECT In
   SELECT
     TABLE_NAME::text
@@ -854,18 +855,18 @@ In short if we run a command like below, we can get a list of all table names th
 | active_storage_variant_records |
 | relationships                  |
 
-**** 2. Copying table structure
+*** 2. Copying table structure
 
 Like in sequences, we will step through copying one table as an example of how it works across the entire system. Let's operate on the ~microposts~ table.
 
-It's surprisingly simple to copy table structures across schemas. When doing a CREATE table operation, we can interpret the following as "copy this table with X columns, indexes, and constraints." All we need are two new pieces of syntax: [[https://www.postgresql.org/docs/current/sql-createtable.html][LIKE and INCLUDING]].
+I think you'll be surprised with how simple it is to copy table structures across schemas. When doing a CREATE table operation, we can interpret the following as "copy this table with X columns, indexes, and constraints." All we need are two new pieces of syntax: [[https://www.postgresql.org/docs/current/sql-createtable.html][LIKE and INCLUDING]].
 
 #+BEGIN_QUOTE
 The LIKE clause specifies a table from which the new table automatically copies all column names, their data types, and their not-null constraints.
 - Postgres Documentation
 #+END_QUOTE
 
-#+begin_src sql
+#+begin_src sql :export code
   CREATE TABLE backup.microposts (
     LIKE public.microposts INCLUDING ALL
   );
@@ -877,7 +878,7 @@ The LIKE clause specifies a table from which the new table automatically copies 
 
 We can verify that this works by seeing that the table exists but is void of any data:
  
-#+begin_src SQL
+#+begin_src SQL :exports both
   SELECT
     id,
     content
@@ -888,12 +889,13 @@ We can verify that this works by seeing that the table exists but is void of any
 #+RESULTS:
 | id | content |
 |----+---------|
+|    |         |
 
-**** 3. Copy Data
+*** 3. Copy Data
 Copying data is one of the least complicated interactions we have. It's just a combination of INSERT and SELECT operations.
 
 #+NAME: Copying data using select and insert
-#+begin_src sql
+#+begin_src sql :exports code
   INSERT INTO backup.microposts
   SELECT * FROM
     public.microposts;
@@ -905,10 +907,7 @@ Copying data is one of the least complicated interactions we have. It's just a c
 
 We can admire our handiwork by using a SELECT and a [[https://www.postgresql.org/docs/14/queries-table-expressions.html][RIGHT JOIN]] statement to compare the two tables.
 
-😲
-
-Shocking, I know.
-#+begin_src sql
+#+begin_src sql :exports both
   SELECT
     public.microposts.content AS public_content,
     public.microposts.id AS public_id,
@@ -934,11 +933,16 @@ Shocking, I know.
 | Vitae quisquam facilis qui vel.      |         9 | Vitae quisquam facilis qui vel.      |         9 |
 | Vitae quisquam facilis qui vel.      |        10 | Vitae quisquam facilis qui vel.      |        10 |
 
-**** 4. Update Default/Sequence values for columns
-When we created the ~backup.microposts~ table based off of the ~public.microposts~ table it copied everything, metadata included, word for word. However, this introduces a problem for us when we need to use our sequences from earlier. It copies and references _all of_ the old table's metadata, including the sequences table reference. So we need to search through the table's metadata and look for columns with a default value that uses sequences and replaces the inner text from referencing ~public~ to reference ~backup~.
 
-We can generate a query that performs this for us
-#+begin_src sql
+😲
+
+
+Shocking, I know.
+*** 4. Update Default/Sequence values for columns
+When we created the ~backup.microposts~ table based off of the ~public.microposts~ table it copied everything, metadata included, word for word. However, this introduces a problem for us when we need to use our sequences from earlier. It copies and references _all of_ the old table's metadata, including the sequences table reference. So, to fix this, we need to search through the table's metadata and look for columns with a default value that uses sequences and replaces the inner text from referencing ~public~ to reference ~backup~.
+
+We can generate a query that performs this for us.
+#+begin_src sql :exports both
   SELECT
     column_name::text,
     REPLACE(column_default::text, 'public', 'backup'),
@@ -954,15 +958,16 @@ We can generate a query that performs this for us
 #+RESULTS:
 | column_name | replace | column_default |
 |-------------+---------+----------------|
+|             |         |                |
 
-We can then use this information to update our apps table to reference the new sequences we generated.
-#+begin_src sql
+We will then use this information to update our apps table to reference the new sequences we generated.
+#+begin_src sql :exports code
   ALTER TABLE backup.microposts
     ALTER COLUMN id SET DEFAULT nextval('backup.microposts_id_seq'::regclass);
 #+end_src
 
 And if you wonder what happens when we call nextval('backup.microposts_id_seq'::regclass), you can play with it below. In my example, it generates a monotonically increasing number, perfect for an object id.
-#+begin_src sql
+#+begin_src sql :exports both
   SELECT
     nextval('backup.microposts_id_seq'::regclass);
 #+end_src
@@ -972,7 +977,7 @@ And if you wonder what happens when we call nextval('backup.microposts_id_seq'::
 |---------|
 |     301 |
 
-**** Playground
+*** Playground
 #+begin_src sql
   DO $$
   DECLARE
