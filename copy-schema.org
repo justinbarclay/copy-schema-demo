@@ -2,6 +2,11 @@
 #+OPTIONS: ^:nil
 #+TITLE: How I sped up demo data generation by 97%
 
+#+RESULT: 
++++
+Title: How I sped up demo data generation by 97%
++++
+
 * How I sped up demo data generation by 97%
 #+BEGIN_QUOTE
 I find it best to play with code to see how it really works. So this post is meant as a playground. In fact, that was most of the impetus for writing this in general; I wrote it as I explored and tried to understand the function. As such, I've broken out _most_ of the SQL so that you can paste it in a psql REPL and play around with it. Or if you're a cool kid, like me 😎, you can read use this as a literate playground in Emacs and org-mode.
@@ -1025,7 +1030,7 @@ And if you wonder what happens when we call nextval('backup.microposts_id_seq'::
 #+end_src
 
 ** Foreign Key Constraints
-Now we'll be concerned about is [[https://www.postgresql.org/docs/14/ddl-constraints.html#DDL-CONSTRAINTS-FK][foreign key constraints]]. Foreign Key constraints help define and validate relationships between tables.
+Now we're going to work on [[https://www.postgresql.org/docs/14/ddl-constraints.html#DDL-CONSTRAINTS-FK][foreign key constraints]]. Foreign key constraints help validate constraints on relationships between tables.
 
 #+begin_src sql
   FOR qry IN
@@ -1043,11 +1048,12 @@ Now we'll be concerned about is [[https://www.postgresql.org/docs/14/ddl-constra
 
 #+end_src
 *** Copying Constraints
+Going by the code above we need to:
 1. Go over all constraints for source schema
 2. Generate a query to create the same constraint on the destination schema
 3. Execute all the queries
 
-**** 0. Get src schema oid
+*** 0. Get src schema oid
 Throughout the following code samples, we need to get the ~oid~ of the source table. So, unlike our main function, we don't have access to that ~oid~ as a variable. To remedy this, we replace any reference to ~src_oid~ with the query to get the ~oid~ at run time.
 #+begin_src SQL
   SELECT
@@ -1058,7 +1064,7 @@ Throughout the following code samples, we need to get the ~oid~ of the source ta
     nspname = quote_ident('public');
 #+end_src
 
-**** 1. Get all constraints for source schema
+*** 1. Get all constraints for source schema
 Postgres has a catalogue called [[https://www.postgresql.org/docs/current/catalog-pg-constraint.html][pg_constraint]] that contains meta-information around all the constraints (foreign_key, primary_key, and exclusion) across the database. Unfortunately, that table is not sufficient to generate our query; we also need access to [[https://www.postgresql.org/docs/current/catalog-pg-class.html][pg_class]] which is a catalogue that keeps meta-information on anything that has a column in Postgres.
 
 In ~pg_constraint~ it a has a column called contype, that describes the type on constraint that the row describes. Ex:
@@ -1114,9 +1120,9 @@ Putting this all together, we'd get a query like:
 | active_storage_attachments     | fk_rails_c3b3935057 | 16458 |
 | active_storage_variant_records | fk_rails_993965df05 | 16476 |
 
-**** 2. Generate a query to create constraints
+*** 2. Generate a query to create constraints
 
-Postgres has a function, [[https://www.postgresql.org/docs/13/functions-info.html#FUNCTIONS-INFO-CATALOG-TABLE][pg_get_constraintdef,]] that can generate a constraint definition based on an object id.
+Postgres has a function, [[https://www.postgresql.org/docs/13/functions-info.html#FUNCTIONS-INFO-CATALOG-TABLE][pg_get_constraintdef]], that can generate a constraint definition based on an object id.
 
 For example, I took a row from the constraints query above and got an OID of ~16428~.
 #+NAME: Example row from constraints query
@@ -1128,7 +1134,7 @@ For example, I took a row from the constraints query above and got an OID of ~16
 
 If we run a select statement on that function...
 #+NAME: Sample constraints definition.
-#+begin_src sql
+#+begin_src sql :exports both
 SELECT pg_get_constraintdef(16428)
 #+end_src
 
@@ -1138,7 +1144,7 @@ We get the following definition:
 |--------------------------------------------|
 | FOREIGN KEY (user_id) REFERENCES users(id) |
 
-We can then put this information with the Constraints Query to generate the query for us:
+We can then put this information with the ~constraints query~ to generate the query for us:
 #+begin_src SQL
   SELECT
     'ALTER TABLE ' || quote_ident('backup') || '.' || quote_ident(rn.relname) || ' ADD CONSTRAINT ' || quote_ident(ct.conname) || ' ' || pg_get_constraintdef(ct.oid) || ';'
@@ -1163,14 +1169,14 @@ We can then put this information with the Constraints Query to generate the quer
 |--------------------------------------------------------------------------------------------------------------|
 | ALTER TABLE backup.microposts ADD CONSTRAINT fk_rails_558c81314b FOREIGN KEY (user_id) REFERENCES users(id); |
 
-**** 3. Execute generate queries
+*** 3. Execute generate queries
 Now, we can use a select statement to run a string as a query
 #+begin_src SQL
   SELECT 'ALTER TABLE backup.active_storage_attachments ADD CONSTRAINT fk_rails_d296c622dc FOREIGN KEY (blob_id) REFERENCES active_storage_blobs(id);'
 #+end_src
 
 Now, just do that for all foreign keys we need to update. I'll wait ⏰
-**** Playground :todo:still-broken:
+*** Playground :todo:still-broken:
 #+begin_src SQL
   DO $$
   DECLARE
@@ -1235,7 +1241,7 @@ Aye, but there's the rub. Our data set is basic and doesn't include views or fun
 
 *** Precursor
 But before we can do that let's be absolutely sure that we don't have any views stored in our view catalog.
-#+begin_src sql
+#+begin_src sql :exports code
        SELECT table_name::text
         FROM information_schema.views
        WHERE table_schema = quote_ident('public')
@@ -1250,7 +1256,7 @@ But before we can do that let's be absolutely sure that we don't have any views 
 In our example, we'll create a view for all microposts created by a particular user.
 
 #+NAME: Creating a new view
-#+begin_src sql
+#+begin_src sql :exports code
   CREATE VIEW first_users_posts AS
     SELECT content, microposts.created_at as created_at, name
         FROM microposts, users
@@ -1281,7 +1287,7 @@ SELECT * FROM first_users_posts LIMIT 10
 | Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.133882 | Example User |
 | Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.140942 | Example User |
 
-*** Collecting the views
+*** 1. Collecting the views
 With all the dirty work done, we need to loop over all of the views in our catalogue. Luckily we've already seen the primary tool for that. Again, we'll be limiting our selection to one, so it's easier to follow along and go through this step by step.
 
 #+NAME: Select one view
@@ -1297,11 +1303,11 @@ With all the dirty work done, we need to loop over all of the views in our catal
 |-------------------|
 | first_users_posts |
 
-*** Copying views
+*** 2. Copying views
 Great, we've got a view name. Now we can use that name to build up the name of the view for the destination scheme:
 
 #+NAME: Naming the view
-#+begin_src SQL
+#+begin_src SQL :exports both
 SELECT 'backup' || '.' || quote_ident('first_users_posts');
 #+end_src
 
@@ -1312,7 +1318,7 @@ SELECT 'backup' || '.' || quote_ident('first_users_posts');
 
 Now that we've generated the name, we need to get the view definition:
 #+NAME: View a definition
-#+begin_src SQL
+#+begin_src SQL :exports both
       SELECT view_definition
         FROM information_schema.views
        WHERE table_schema = quote_ident('public')
@@ -1461,7 +1467,7 @@ Now that we have ensured we have data to play with, we now need to:
 2. replace every reference to source_schema with dest_schema within those functions
 3. execute all function definitions as queries.
 
-**** Step 1
+*** Step 1
 Get a function defition from a func_oid
 #+begin_src sql :results drawer
 SELECT pg_get_functiondef(16675);
@@ -1471,7 +1477,7 @@ SELECT pg_get_functiondef(16675);
 This section omitted for brevity.
 #+END_QUOTE
 
-**** Step 2
+*** Step 2
 Use the [[https://www.postgresql.org/docs/14/functions-string.html][replace]] function to change the schema name references
 #+begin_src sql :results drawer
 SELECT replace((SELECT pg_get_functiondef(16675)), 'public', 'backup');
@@ -1481,7 +1487,7 @@ SELECT replace((SELECT pg_get_functiondef(16675)), 'public', 'backup');
 This section omitted for brevity
 #+END_QUOTE
 
-**** Step 3
+*** Step 3
 Now we need to do a little bit of magic and wrap our Execute call in an anonymous function to ensure it runs. 
 #+begin_src sql
   DO $$
