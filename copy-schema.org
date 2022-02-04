@@ -1234,14 +1234,14 @@ In step 5, we will copy all of the views defined in the source schema into the d
 #+end_src
 
 If you have a database with views, the steps would be as follow:
-1. Loops over each view in ~information_schema.views~
+1. Collect views from ~information_schema.views~
 2. Use the view definition that is stored in the view catalogue to define the view in the destination schema
    
 Aye, but there's the rub. Our data set is basic and doesn't include views or functions. So we'll build some as we go.
 
-*** Precursor
+*** 0. Precursor
 But before we can do that let's be absolutely sure that we don't have any views stored in our view catalog.
-#+begin_src sql :exports code
+#+begin_src sql :exports both
        SELECT table_name::text
         FROM information_schema.views
        WHERE table_schema = quote_ident('public')
@@ -1250,8 +1250,9 @@ But before we can do that let's be absolutely sure that we don't have any views 
 #+RESULTS:
 | table_name |
 |------------|
+|            |
 
-*** Creating our view
+****  Creating our view
 
 In our example, we'll create a view for all microposts created by a particular user.
 
@@ -1269,7 +1270,7 @@ In our example, we'll create a view for all microposts created by a particular u
 
 Now, lets validate that it works
 #+NAME: Test our view
-#+begin_src sql
+#+begin_src sql :exports both
 SELECT * FROM first_users_posts LIMIT 10
 #+end_src
 
@@ -1393,7 +1394,7 @@ And this is where we are going to get ~Meta~. We will talk about a cloning funct
 For those reading this, not in 2022, Facebook recently changed their name to Meta, so I wanted to make a bad pun. But instead of you being able to chuckle at that, you now have to read this long-winded explanation.
 #+end_quote
 
-Now, the final part in question that we're interested in is:
+The final part of the clone schema function is:
 #+begin_src SQL
     FOR func_oid IN
       SELECT oid
@@ -1467,7 +1468,7 @@ Now that we have ensured we have data to play with, we now need to:
 2. replace every reference to source_schema with dest_schema within those functions
 3. execute all function definitions as queries.
 
-*** Step 1
+*** 1. Get a function definition
 Get a function defition from a func_oid
 #+begin_src sql :results drawer
 SELECT pg_get_functiondef(16675);
@@ -1477,7 +1478,7 @@ SELECT pg_get_functiondef(16675);
 This section omitted for brevity.
 #+END_QUOTE
 
-*** Step 2
+*** 2. Replace schema name
 Use the [[https://www.postgresql.org/docs/14/functions-string.html][replace]] function to change the schema name references
 #+begin_src sql :results drawer
 SELECT replace((SELECT pg_get_functiondef(16675)), 'public', 'backup');
@@ -1487,7 +1488,7 @@ SELECT replace((SELECT pg_get_functiondef(16675)), 'public', 'backup');
 This section omitted for brevity
 #+END_QUOTE
 
-*** Step 3
+*** 3. Add the new function definition 
 Now we need to do a little bit of magic and wrap our Execute call in an anonymous function to ensure it runs. 
 #+begin_src sql
   DO $$
@@ -1495,15 +1496,10 @@ Now we need to do a little bit of magic and wrap our Execute call in an anonymou
     EXECUTE replace((
       SELECT
         pg_get_functiondef(16675)), 'public', 'backup');
-    END$$
+  END$$
 #+end_src
 
-I am not sure why the above works and below gives us an error talking about how the prepared statement replace does not exist.
-#+begin_src sql
-EXECUTE replace((SELECT pg_get_functiondef(16496)), 'public', 'backup');
-#+end_src
-
-But ignoring that, then we can validate our work by searching for this cloned function in the new schema
+Then, we can validate our work by searching for this cloned function in the new schema
 #+begin_src sql
       SELECT oid, proname, pronamespace
         FROM pg_proc
