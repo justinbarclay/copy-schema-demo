@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<!-- saved from url=(0039)http://127.0.0.1:1111/blog/copy-schema/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
+        <meta name="HandheldFriendly" content="True">
+        <meta name="MobileOptimized" content="320">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="referrer" content="no-referrer">
+
+        <style>*{margin:0;padding:0;-webkit-box-sizing:border-box;box-sizing:border-box}html{background-color:#39424E;font-family:"Didact Gothic","sans serif";font-size:16px}body{font-size:16px;font-family:"Didact Gothic","sans serif";color:#fff;line-height:2rem;letter-spacing:1.5px;text-shadow:none;display:flex;flex-direction:column;justify-content:space-between;align-items:center;opacity:1}h1,h2,h3{margin-bottom:0.5em;text-align:center;font-family:'Didact Gothic', sans-serif;opacity:0.6}li{opacity:0.8}li a{opacity:0.9}ul{list-style-type:none}p{display:inline;opacity:0.8}a{color:#ccc;text-decoration:none;border-bottom:2px solid #ccc;transition:.5s ease}a:hover{color:#fff;font-style:none}a:active{color:#ccc}button{padding:20px;border:0px;border-radius:5px;background:#fff}button:hover{box-shadow:5px 5px #111}hr{margin:1rem 0;background-color:transparent;width:50%;border-style:solid;border-width:1px;opacity:0.3}.wrap{margin:0 auto;margin-top:6rem;width:45%}@media screen and (max-width: 736px){.wrap{padding:1rem;width:100%}}.tag-container{display:flex;flex-direction:row;justify-content:flex-start;align-items:center}.tag{background-color:transparent;position:relative;bottom:0}.section{display:flex;flex-direction:column;justify-content:center;align-items:flex-start}.bottom-menu{display:flex;flex-direction:column;justify-content:center;align-items:center;padding-top:3rem;padding-bottom:3rem;text-align:center}.footer{width:100%;display:flex;justify-content:center;align-items:center;text-align:center;background-color:transparent;position:relative;bottom:0;padding:0rem 1rem 3rem 1rem;font-family:"Didact Gothic","sans serif";font-size:1rem;line-height:1em;opacity:0.8}.footer a{border-bottom:none;display:contents}#splash{margin:auto 0;height:100vh;width:45%;overflow:hidden}@media screen and (max-width: 736px){#splash{width:90%}}.big-link{font-family:"Didact Gothic","sans serif";font-size:3rem;font-weight:300;margin-bottom:2rem;line-height:1.5em}#title{margin-top:3rem;font-family:"Didact Gothic","sans serif";font-size:2rem;line-height:3rem}#content{margin:2rem 0;line-height:2em;letter-spacing:2px}#content div{width:100%;height:100%;margin-bottom:1em}#content h1,#content h2,#content h3{margin:1em 0em;text-align:left}#content p{margin-bottom:1em;line-height:1.8;letter-spacing:1.5px;opacity:0.8}#content .highlight{width:100%}#content pre{line-height:2rem;border-radius:3px;padding:1rem;overflow-x:auto;background-color:#000004;width:100%;margin-bottom:1em}#content pre>code{border:none}#content code{font-size:0.9rem;font-family:'Source Code Pro', monospace;padding:0.1rem;border-radius:3px;border:1px solid #ccc}#content img{width:100%;max-width:100%;display:block;margin:2rem auto;opacity:1}#content blockquote{background-color:#ccc;color:#39424E;padding:2rem;margin:2rem 1rem 2rem 1rem;border-radius:3px}#content blockquote a{color:#111}#content blockquote ul{margin-top:1rem}#content blockquote li{list-style:disc}#content table{width:100%;border-collapse:collapse;margin:1rem 0;overflow-x:auto}#content table th{font-size:0.9rem}#content table td,#content table th{padding:2px 5px;text-align:center;border:1px solid #ccc}#content li{line-height:2;padding-left:0.4rem}#content li:last-child{margin-bottom:1rem}#content ul{list-style:disc outside;padding-left:2rem}#content ol{list-style:decimal outside;padding-left:2rem;width:100%}#content .gist{width:100%}#content .gist td,#content .gist th{text-align:left;border:0}#content .gist .gist-meta{background-color:transparent;color:#fff}#content .gist .gist-meta a{color:#fff}.tag{padding:0.25em 0em;margin-right:0.5em;opacity:0.6}.grid{display:grid;grid-gap:20px;grid-template-columns:repeat(auto-fit, minmax(400px, 1fr));grid-auto-rows:400px}@media screen and (max-width: 736px){.grid{grid-template-columns:repeat(auto-fit, minmax(100%, 1fr))}}.grid>div{background-color:transparent;overflow:hidden}.grid>div>img{height:100%;width:100%;object-fit:cover;opacity:1}.grid>div>a>img{height:100%;width:100%;object-fit:cover;opacity:1}.go-left{justify-content:flex-start;align-items:flex-start}.go-right{justify-content:flex-end;align-items:flex-end}.go-center{justify-content:center;align-items:center}#sections{align-items:center;font-size:1.4rem;font-weight:bold;color:#EEEDDD}#sections a{color:#EEEDDD;border-bottom:none}</style>
+        <style>@font-face{font-family:'Didact Gothic';font-style:normal;font-weight:400;src:local("Didact Gothic Regular"),local("DidactGothic-Regular"),url(fonts/DidactGothic-Regular.otf) format("opentype")}</style>
+
+        <title>
+</title>
+
+        
+    </head>
+    <body data-new-gr-c-s-check-loaded="14.1007.0" data-gr-ext-installed="">
+        
+    <div class="wrap">
+        <div class="section" id="title">
+            
+        </div>
+        <div class="section" id="sections">
+            
+        </div>
+        <div class="section" id="content">
+            
+<h1 class="title">How I sped up demo data generation by 97%</h1>
+<p class="subtitle"><strong>2022-01-22</strong></p>
+<blockquote>
+<p>I find it best to play with code to see how it really works. So this
+post is meant as a playground. In fact, that was most of the impetus
+for writing this in general; I wrote it as I explored and tried to
+understand the function. As such, I've broken out <u>most</u> of the
+SQL so that you can paste it in a psql REPL and play around with it.
+Or if you're a cool kid, like me 😎, you can read use this as a
+literate playground in Emacs and org-mode.</p>
+</blockquote>
+<h2 id="or-how-i-chose-to-copy-data-instead-of-generating-it">…or how I chose to copy data instead of generating it</h2>
+<p>TLDR; Move from ruby and rails to SQL</p>
+<img src="./copy-schema_files/surprise-surprise.jpg" title="A woman feigning surprise" alt="&quot;A woman feigning surprise&quot;" width="400">
+<h1 id="why-work-on-this">Why work on this?</h1>
+<p>At work, I was working on a project that would seed a new schema with a
+large set of data for each new client. This operation would take 10
+minutes in our production environment and, on my poor dev machine, it
+would take upwards of 30 minutes in a development environment. We did
+implement some easly optimizations to the process, where instead of
+inserting data one query at a time, we shaved our process time by half
+when we started bulk inserting rows. But this wasn't enough for me, and
+I felt like we could do better.</p>
+<blockquote>
+<p>I can hear you saying… "30 minutes? That's insane. How did you let it
+get so bad?" Look, mistakes were made, OK? But I am trying to learn
+from them out in the open. And in this case, I'm looking to take you
+along this specifically painful journey.</p>
+</blockquote>
+<p>So, knowing that this could be done better, I did some research. Can we
+move a lot of this initial logic from Ruby to SQL somehow? I thought
+about just generating all the seed data in pure SQL and running those
+seed files whenever we needed to seed a schema. That seemed messy and
+unmaintainable, not only because I like maintaining Ruby over SQL but
+because we had some highly related data, which would mean importing some
+of our business logic into these seed files to maintain those
+relationships. Could we export a copy of a schema and then import the
+entire schema based on some script? I found <code>pg_dump</code> which could export
+schema structures, or you could dump and load an entire database. But my
+initial search didn't find anything around exporting and re-importing a
+schema <u>and</u> it's data.</p>
+<p>Instead, I chose to dive deeper. That led me on a short journey into the
+PostgreSQL wiki. I found an
+<a href="https://wiki.postgresql.org/wiki/Clone_schema">article</a> that talked
+about cloning the data from one schema onto another schema. I thought
+that was brilliant. We could maintain our seed data generation process
+in Ruby, import it into a demo data schema, and then clone from that
+schema whenever we instantiated a new schema for a user. And this
+article was really close to what I wanted, but it did not clone some key
+information about those table. So, that meant that we were missing
+essential things like sequences and foreign key relations when we cloned
+schemas. Luckily this article referenced a more complete <a href="https://www.postgresql.org/message-id/CANu8FiyJtt-0q%3DbkUxyra66tHi6FFzgU8TqVR2aahseCBDDntA%40mail.gmail.com">mailing list
+post</a>
+that goes over how to copy all the data, including metadata, from a
+source schema into a destination schema.</p>
+<h1 id="using-pure-sql-to-copy">Using Pure SQL to Copy</h1>
+<p>When I started this adventure, I knew very little about SQL and less so
+the variant we use, PL/pgSQL. I knew enough to write some select
+statements and maybe do a join or two. But I never really considered it
+for anything more. But, apparently, it's a Turing Complete language 🤯. I
+mean… It's not pretty, but it works.</p>
+<p>Now, I had a pretty good idea of what I wanted to do from a high level.
+We want to use a schema, called <code>demo</code>, to cache any demo data
+generation. Then, when we want to populate an account schema with demo
+data, we copy data from the <code>demo</code> schema into the client schema.</p>
+<p>I knew that the function presented on that mailing list was supposed to
+do what I wanted. But I understood almost none it. What sort of
+developer would I be if I blindly copied and pasted this code into
+production? So, I read through function line by line. I poked and
+prodded and teased it apart until I could understand it. Now, I want to
+explain this code very explicitly to you. You, my one reader. My one,
+lovely, endearing reader. How else can I prove that I understand
+something unless I can explain it to someone else?</p>
+<h2 id="syntax-preamble">Syntax Preamble</h2>
+<p>Before I scare you with a lovecraftian horror of SQL, a behemoth 200
+line schema cloning function, I need to lay some groundwork. I expect
+that you'll have some SQL knowledge. Like you'll have used <code>SELECT</code> and
+<code>INSERT</code> and <code>JOINS</code> and know what a SQL Schema is. Maybe, you haven't
+heard functions though. And This mess of an article is based on
+understanding a single SQL function and I use SQL functions to play with
+singular concepts. So, you should know what they are, what they look
+like, what part of your brain they like to gnaw on at 3 am.</p>
+<blockquote>
+<p>Authors note: If you have something gnawing on your amygdala at 3am
+it's probable some sort of horror novel and I suggest you seek a witch
+doctor or take some invermectin.</p>
+</blockquote>
+<h3 id="sql-functions">SQL Functions</h3>
+<p>In the code block below is a simple version of the function syntax. Some
+items are optional, like, you don't need to have an <code>OR</code> or a <code>REPLACE</code>,
+you don't need to have any arguments, and you don't have to declare any
+variables.</p>
+<p>What you do have to do is say you're creating a function with some name
+and that it has a body, and then you can do 0 or more things in that
+body.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">CREATE OR REPLACE FUNCTION </span><span style="color:#8fa1b3;">demo_func</span><span>(
+</span><span>
+</span><span>    source_schema </span><span style="color:#b48ead;">text
+</span><span>)
+</span><span>  RETURNS void AS
+</span><span>$BODY$
+</span><span>
+</span><span>DECLARE
+</span><span>  src_oid          </span><span style="color:#b48ead;">oid</span><span>;
+</span><span>
+</span><span style="color:#b48ead;">BEGIN
+</span><span style="color:#65737e;">--  ...
+</span><span style="color:#b48ead;">END</span><span>;
+</span><span>$BODY$
+</span></code></pre>
+<p>This is the minimal function I could write to make Postgres happy. But
+it's not very demonstrative so thats why I decided to show the above
+code block and why I did not talk about the below code block.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">CREATE FUNCTION </span><span style="color:#8fa1b3;">func </span><span>()
+</span><span>    RETURNS void
+</span><span>    AS $BODY$
+</span><span style="color:#b48ead;">BEGIN
+</span><span style="color:#b48ead;">END
+</span><span>$BODY$
+</span></code></pre>
+<p>You can also have anonymous functions, where they operate just like a
+regular function but lack a name, arguments or the ability to return
+anything. Anonymous functions are suitable for when you need to do some
+work, and you need the full power of the PL/pgSQL language (loops,
+conditionals, logs/errors), but you don't need to name it or return
+anything.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>do $$
+</span><span>DECLARE
+</span><span>  src_oid </span><span style="color:#b48ead;">oid</span><span>;
+</span><span style="color:#b48ead;">BEGIN
+</span><span style="color:#65737e;">-- ...
+</span><span style="color:#b48ead;">END
+</span><span>$$;
+</span></code></pre>
+<h3 id="for-loops">For loops!</h3>
+<p>Like most modern languages, PL/pgSQL has <code>for loops</code>. However, it does
+have a restriction, loops can only run within function calls.</p>
+<p>So to write a for loop in an anonymous function, it would look something
+like this:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>do $$
+</span><span style="color:#b48ead;">BEGIN
+</span><span> FOR counter IN </span><span style="color:#d08770;">1</span><span>..</span><span style="color:#d08770;">5</span><span> LOOP
+</span><span>   RAISE NOTICE '</span><span style="color:#a3be8c;">Counter: %</span><span>', counter;
+</span><span>   </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span> </span><span style="color:#b48ead;">END
+</span><span>$$;
+</span></code></pre>
+<p>If you copy and paste this into a PSQL REPL, you would get output like
+below:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>NOTICE:  Counter: </span><span style="color:#d08770;">1
+</span><span>NOTICE:  Counter: </span><span style="color:#d08770;">2
+</span><span>NOTICE:  Counter: </span><span style="color:#d08770;">3
+</span><span>NOTICE:  Counter: </span><span style="color:#d08770;">4
+</span><span>NOTICE:  Counter: </span><span style="color:#d08770;">5
+</span></code></pre>
+<p>For loops, in general, can work across any iterable item, be it a range,
+array, or query results.</p>
+<h2 id="love-and-war-and-cthulu">Love and War and Cthulu</h2>
+<p>For those who just want to see and play with occult artifacts before
+they understand them, here you are. Though I warn you, this incantation
+may not summon Cthulu but it probably would summon something like
+Azathoth.</p>
+<blockquote>
+<p>The function above is slightly modified from the version found on the
+mailing list. Mainly, it has been modified to work in modern versions
+of Postres IE. 10 and above.</p>
+</blockquote>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#65737e;">-- Function: clone_schema(text, text)
+</span><span>
+</span><span style="color:#65737e;">-- DROP FUNCTION clone_schema(text, text);
+</span><span>
+</span><span style="color:#b48ead;">CREATE OR REPLACE FUNCTION </span><span style="color:#8fa1b3;">clone_schema</span><span>(
+</span><span>    source_schema </span><span style="color:#b48ead;">text</span><span>,
+</span><span>    dest_schema </span><span style="color:#b48ead;">text</span><span>,
+</span><span>    include_recs </span><span style="color:#b48ead;">boolean</span><span>)
+</span><span>  RETURNS void AS
+</span><span>$BODY$
+</span><span>
+</span><span style="color:#65737e;">--  This function will clone all sequences, tables, data, views &amp; functions from any existing schema to a new one
+</span><span style="color:#65737e;">-- SAMPLE CALL:
+</span><span style="color:#65737e;">-- SELECT clone_schema('public', 'new_schema', TRUE);
+</span><span>
+</span><span>DECLARE
+</span><span>  src_oid          </span><span style="color:#b48ead;">oid</span><span>;
+</span><span>  tbl_oid          </span><span style="color:#b48ead;">oid</span><span>;
+</span><span>  func_oid         </span><span style="color:#b48ead;">oid</span><span>;
+</span><span>  object           </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  buffer           </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  srctbl           </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  default_         </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  column_          </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  qry              </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  dest_qry         </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  v_def            </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  seqval           </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_last_value    </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_max_value     </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_start_value   </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_increment_by  </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_min_value     </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_cache_value   </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_log_cnt       </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_is_called     </span><span style="color:#b48ead;">boolean</span><span>;
+</span><span>  sq_is_cycled     </span><span style="color:#b48ead;">boolean</span><span>;
+</span><span>  sq_cycled        </span><span style="color:#b48ead;">char</span><span>(</span><span style="color:#d08770;">10</span><span>);
+</span><span style="color:#b48ead;">BEGIN
+</span><span>
+</span><span style="color:#65737e;">-- Check that source_schema exists
+</span><span>  </span><span style="color:#b48ead;">SELECT oid</span><span> INTO src_oid
+</span><span>    </span><span style="color:#b48ead;">FROM</span><span> pg_namespace
+</span><span>   </span><span style="color:#b48ead;">WHERE</span><span> nspname = quote_ident(source_schema);
+</span><span>  IF NOT FOUND
+</span><span>    </span><span style="color:#b48ead;">THEN 
+</span><span>    RAISE NOTICE '</span><span style="color:#a3be8c;">source schema % does not exist!</span><span>', source_schema;
+</span><span>    RETURN ;
+</span><span>      </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>
+</span><span>  </span><span style="color:#65737e;">-- Check that dest_schema does not yet exist
+</span><span>  PERFORM nspname 
+</span><span>    </span><span style="color:#b48ead;">FROM</span><span> pg_namespace
+</span><span>   </span><span style="color:#b48ead;">WHERE</span><span> nspname = quote_ident(dest_schema);
+</span><span>  IF FOUND
+</span><span>    </span><span style="color:#b48ead;">THEN 
+</span><span>    RAISE NOTICE '</span><span style="color:#a3be8c;">dest schema % already exists!</span><span>', dest_schema;
+</span><span>    RETURN ;
+</span><span>  </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>
+</span><span>  EXECUTE '</span><span style="color:#a3be8c;">CREATE SCHEMA </span><span>' || quote_ident(dest_schema) ;
+</span><span>
+</span><span>  </span><span style="color:#65737e;">-- Create sequences
+</span><span>  </span><span style="color:#65737e;">-- TODO: Find a way to make this sequence's owner is the correct table.
+</span><span>  FOR object IN
+</span><span>    </span><span style="color:#b48ead;">SELECT</span><span> sequence_name::</span><span style="color:#b48ead;">text 
+</span><span>      </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">sequences
+</span><span>      </span><span style="color:#b48ead;">WHERE</span><span> sequence_schema = quote_ident(source_schema)
+</span><span>  LOOP
+</span><span>    EXECUTE '</span><span style="color:#a3be8c;">CREATE SEQUENCE </span><span>' || quote_ident(dest_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>    srctbl := quote_ident(source_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>
+</span><span>    EXECUTE '</span><span style="color:#a3be8c;">SELECT last_value, max_value, start_value, increment_by, min_value, cache_value, log_cnt, is_cycled, is_called 
+</span><span style="color:#a3be8c;">              FROM </span><span>' || quote_ident(source_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object) || '</span><span style="color:#a3be8c;">;</span><span>' 
+</span><span>              INTO sq_last_value, sq_max_value, sq_start_value, sq_increment_by, sq_min_value, sq_cache_value, sq_log_cnt, sq_is_cycled, sq_is_called ; 
+</span><span>
+</span><span>    IF sq_is_cycled 
+</span><span>      </span><span style="color:#b48ead;">THEN 
+</span><span>        sq_cycled := '</span><span style="color:#a3be8c;">CYCLE</span><span>';
+</span><span>    </span><span style="color:#b48ead;">ELSE
+</span><span>        sq_cycled := '</span><span style="color:#a3be8c;">NO CYCLE</span><span>';
+</span><span>    </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>
+</span><span>    EXECUTE '</span><span style="color:#a3be8c;">ALTER SEQUENCE </span><span>'   || quote_ident(dest_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object) 
+</span><span>            || '</span><span style="color:#a3be8c;"> INCREMENT BY </span><span>' || sq_increment_by
+</span><span>            || '</span><span style="color:#a3be8c;"> MINVALUE </span><span>'     || sq_min_value 
+</span><span>            || '</span><span style="color:#a3be8c;"> MAXVALUE </span><span>'     || sq_max_value
+</span><span>            || '</span><span style="color:#a3be8c;"> START WITH </span><span>'   || sq_start_value
+</span><span>            || '</span><span style="color:#a3be8c;"> RESTART </span><span>'      || sq_min_value 
+</span><span>            || '</span><span style="color:#a3be8c;"> CACHE </span><span>'        || sq_cache_value 
+</span><span>            || sq_cycled || '</span><span style="color:#a3be8c;"> ;</span><span>' ;
+</span><span>
+</span><span>    buffer := quote_ident(dest_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>    IF include_recs 
+</span><span>        </span><span style="color:#b48ead;">THEN
+</span><span>            EXECUTE '</span><span style="color:#a3be8c;">SELECT setval( </span><span style="color:#96b5b4;">''</span><span>' || buffer || '</span><span style="color:#96b5b4;">''</span><span style="color:#a3be8c;">, </span><span>' || sq_last_value || '</span><span style="color:#a3be8c;">, </span><span>' || sq_is_called || '</span><span style="color:#a3be8c;">);</span><span>' ; 
+</span><span>    </span><span style="color:#b48ead;">ELSE
+</span><span>            EXECUTE '</span><span style="color:#a3be8c;">SELECT setval( </span><span style="color:#96b5b4;">''</span><span>' || buffer || '</span><span style="color:#96b5b4;">''</span><span style="color:#a3be8c;">, </span><span>' || sq_start_value || '</span><span style="color:#a3be8c;">, </span><span>' || sq_is_called || '</span><span style="color:#a3be8c;">);</span><span>' ;
+</span><span>    </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>
+</span><span>  </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>
+</span><span style="color:#65737e;">-- Create tables 
+</span><span>  FOR object IN
+</span><span>    </span><span style="color:#b48ead;">SELECT</span><span> TABLE_NAME::</span><span style="color:#b48ead;">text 
+</span><span>      </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">tables 
+</span><span>     </span><span style="color:#b48ead;">WHERE</span><span> table_schema = quote_ident(source_schema)
+</span><span>       AND table_type = '</span><span style="color:#a3be8c;">BASE TABLE</span><span>'
+</span><span>
+</span><span>  LOOP
+</span><span>    buffer := dest_schema || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>    EXECUTE '</span><span style="color:#a3be8c;">CREATE TABLE </span><span>' || buffer || '</span><span style="color:#a3be8c;"> (LIKE </span><span>' || quote_ident(source_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object) 
+</span><span>        || '</span><span style="color:#a3be8c;"> INCLUDING ALL)</span><span>';
+</span><span>
+</span><span>    IF include_recs 
+</span><span>      </span><span style="color:#b48ead;">THEN 
+</span><span>      </span><span style="color:#65737e;">-- Insert records from source table
+</span><span>      EXECUTE '</span><span style="color:#a3be8c;">INSERT INTO </span><span>' || buffer || '</span><span style="color:#a3be8c;"> SELECT * FROM </span><span>' || quote_ident(source_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object) || '</span><span style="color:#a3be8c;">;</span><span>';
+</span><span>    </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>
+</span><span>    FOR column_, default_ IN
+</span><span>      </span><span style="color:#b48ead;">SELECT</span><span> column_name::</span><span style="color:#b48ead;">text</span><span>, 
+</span><span>             REPLACE(column_default::</span><span style="color:#b48ead;">text</span><span>, source_schema, dest_schema) 
+</span><span>        </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">COLUMNS 
+</span><span>       </span><span style="color:#b48ead;">WHERE</span><span> table_schema = dest_schema 
+</span><span>         AND TABLE_NAME = object 
+</span><span>         AND column_default LIKE '</span><span style="color:#a3be8c;">nextval(%</span><span>' || quote_ident(source_schema) || '</span><span style="color:#a3be8c;">%::regclass)</span><span>'
+</span><span>    LOOP
+</span><span>      EXECUTE '</span><span style="color:#a3be8c;">ALTER TABLE </span><span>' || buffer || '</span><span style="color:#a3be8c;"> ALTER COLUMN </span><span>' || column_ || '</span><span style="color:#a3be8c;"> SET DEFAULT </span><span>' || default_;
+</span><span>    </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>
+</span><span>  </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>
+</span><span style="color:#65737e;">--  add FK constraint
+</span><span>  FOR qry IN
+</span><span>    </span><span style="color:#b48ead;">SELECT </span><span>'</span><span style="color:#a3be8c;">ALTER TABLE </span><span>' || quote_ident(dest_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(</span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">relname</span><span>) 
+</span><span>                          || '</span><span style="color:#a3be8c;"> ADD CONSTRAINT </span><span>' || quote_ident(</span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">conname</span><span>) || ' ' || pg_get_constraintdef(</span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">oid</span><span>) || '</span><span style="color:#a3be8c;">;</span><span>'
+</span><span>      </span><span style="color:#b48ead;">FROM</span><span> pg_constraint ct
+</span><span>      </span><span style="color:#b48ead;">JOIN</span><span> pg_class rn ON </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">oid </span><span>= </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">conrelid
+</span><span>     </span><span style="color:#b48ead;">WHERE</span><span> connamespace = src_oid
+</span><span>       AND </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">relkind </span><span>= '</span><span style="color:#a3be8c;">r</span><span>'
+</span><span>       AND </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">contype </span><span>= '</span><span style="color:#a3be8c;">f</span><span>'
+</span><span>
+</span><span>    LOOP
+</span><span>      EXECUTE qry;
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>
+</span><span>
+</span><span style="color:#65737e;">-- Create views 
+</span><span>  FOR object IN
+</span><span>    </span><span style="color:#b48ead;">SELECT</span><span> table_name::</span><span style="color:#b48ead;">text</span><span>,
+</span><span>           view_definition 
+</span><span>      </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">views
+</span><span>     </span><span style="color:#b48ead;">WHERE</span><span> table_schema = quote_ident(source_schema)
+</span><span>
+</span><span>  LOOP
+</span><span>    buffer := dest_schema || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>    </span><span style="color:#b48ead;">SELECT</span><span> view_definition INTO v_def
+</span><span>      </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">views
+</span><span>     </span><span style="color:#b48ead;">WHERE</span><span> table_schema = quote_ident(source_schema)
+</span><span>       AND table_name = quote_ident(object);
+</span><span>
+</span><span>    EXECUTE '</span><span style="color:#a3be8c;">CREATE OR REPLACE VIEW </span><span>' || buffer || '</span><span style="color:#a3be8c;"> AS </span><span>' || v_def || '</span><span style="color:#a3be8c;">;</span><span>' ;
+</span><span>
+</span><span>  </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>
+</span><span style="color:#65737e;">-- Create functions 
+</span><span>  FOR func_oid IN
+</span><span>    </span><span style="color:#b48ead;">SELECT oid
+</span><span>      </span><span style="color:#b48ead;">FROM</span><span> pg_proc 
+</span><span>     </span><span style="color:#b48ead;">WHERE</span><span> pronamespace = src_oid
+</span><span>
+</span><span>  LOOP      
+</span><span>    </span><span style="color:#b48ead;">SELECT</span><span> pg_get_functiondef(func_oid) INTO qry;
+</span><span>    </span><span style="color:#b48ead;">SELECT</span><span> replace(qry, source_schema, dest_schema) INTO dest_qry;
+</span><span>    EXECUTE dest_qry;
+</span><span>
+</span><span>  </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>
+</span><span>  RETURN; 
+</span><span>
+</span><span style="color:#b48ead;">END</span><span>;
+</span><span>
+</span><span>$BODY$
+</span><span>  LANGUAGE plpgsql VOLATILE
+</span><span>  COST </span><span style="color:#d08770;">100</span><span>;
+</span><span style="color:#b48ead;">ALTER FUNCTION </span><span>clone_schema(</span><span style="color:#b48ead;">text</span><span>, </span><span style="color:#b48ead;">text</span><span>, </span><span style="color:#b48ead;">boolean</span><span>)
+</span><span>  OWNER TO postgres;
+</span></code></pre>
+<p>Woh, insane, right? That's a lot of SQL, and there are words like CREATE
+and OR and LOOP in there. I need to step back and go section by section
+to grasp this.</p>
+<blockquote>
+<p>I am done with the jokes and the Cthulu and the like. This is a
+serious learning article, we need to be serious to be taken seriously.</p>
+</blockquote>
+<h1 id="let-s-break-it-down">Let's break it down</h1>
+<blockquote>
+<p>Some of my examples will include chunks of code wrapped in a function
+definition. We can easily mimic the calling environment, call special
+syntax, or get some lovely printout here in org-mode. That means, for
+the most part, things being functions are an implementation detail and
+can be safely ignored.</p>
+<p>All examples provided are based on a
+<a href="https://hub.docker.com/repository/docker/justinbarclay/clone-schema-demo_beta">this</a>
+docker image, which is a in turn the schema from the wonderful <a href="https://www.railstutorial.org/book">Ruby
+on Rails</a> tutorial by Michael
+Hartl.</p>
+</blockquote>
+<h2 id="metaprogramming-in-postgres">Metaprogramming in Postgres</h2>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT </span><span style="color:#bf616a;">* </span><span style="color:#b48ead;">FROM</span><span> pg_namespace;
+</span></code></pre>
+<p>Postgres keeps a table of information about itself and its state, and
+they call the collection of metadata <a href="https://www.postgresql.org/docs/13/catalogs.html">systems
+catalogue</a>. Generally,
+these tables are prefixed with <code>pg</code>. For example,
+<a href="https://www.postgresql.org/docs/13/catalog-pg-namespace.html">pg_namespace</a>
+is a table that contains information about all schemas stored in the
+database.</p>
+<h2 id="schemas">Schemas</h2>
+<p>I assume you know about Schemas because this is a blog post on how to
+clone one schema to another. However, if you're new to SQL or have never
+needed to concern yourself with schemas before, visit
+<a href="https://www.postgresql.org/docs/current/ddl-schemas.">here</a> to find out
+more.</p>
+<h3 id="checking-for-the-existence-of-schema">Checking for the existence of schema</h3>
+<p>Knowing about the existence of <code>pg_namespace</code> gives us the ability to
+understand the first section of code:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#65737e;">-- Check that source_schema exists
+</span><span>    </span><span style="color:#b48ead;">SELECT oid</span><span> INTO src_oid
+</span><span>      </span><span style="color:#b48ead;">FROM</span><span> pg_namespace
+</span><span>     </span><span style="color:#b48ead;">WHERE</span><span> nspname = quote_ident(source_schema);
+</span><span>    IF NOT FOUND
+</span><span>      </span><span style="color:#b48ead;">THEN 
+</span><span>      RAISE NOTICE '</span><span style="color:#a3be8c;">source schema % does not exist!</span><span>', source_schema;
+</span><span>      RETURN;
+</span><span>        </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>
+</span><span>    </span><span style="color:#65737e;">-- Check that dest_schema does not yet exist
+</span><span>    PERFORM nspname 
+</span><span>      </span><span style="color:#b48ead;">FROM</span><span> pg_namespace
+</span><span>     </span><span style="color:#b48ead;">WHERE</span><span> nspname = quote_ident(dest_schema);
+</span><span>    IF FOUND
+</span><span>      </span><span style="color:#b48ead;">THEN 
+</span><span>      RAISE NOTICE '</span><span style="color:#a3be8c;">dest schema % already exists!</span><span>', dest_schema;
+</span><span>      RETURN ;
+</span><span>    </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>
+</span><span>    EXECUTE '</span><span style="color:#a3be8c;">CREATE SCHEMA </span><span>' || quote_ident(dest_schema) ;
+</span></code></pre>
+<p>Unfortunately, we can't really run that as pure SQL in its current form.
+So instead, we need to make it a function so we can normalize the
+results:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">CREATE OR REPLACE FUNCTION </span><span style="color:#8fa1b3;">check_existence</span><span>(
+</span><span>  source_schema </span><span style="color:#b48ead;">text</span><span>)
+</span><span>  RETURNS bool AS $BODY$
+</span><span style="color:#b48ead;">BEGIN
+</span><span>
+</span><span> PERFORM </span><span style="color:#b48ead;">oid
+</span><span>    </span><span style="color:#b48ead;">FROM</span><span> pg_namespace
+</span><span>   </span><span style="color:#b48ead;">WHERE</span><span> nspname = quote_ident(source_schema);
+</span><span>  IF NOT FOUND
+</span><span>  </span><span style="color:#b48ead;">THEN
+</span><span>    RAISE NOTICE '</span><span style="color:#a3be8c;">source schema % does not exist!</span><span>', source_schema;
+</span><span>    RETURN </span><span style="color:#d08770;">false</span><span>;
+</span><span>  </span><span style="color:#b48ead;">ELSE
+</span><span>    RETURN </span><span style="color:#d08770;">true</span><span>;
+</span><span>  </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span style="color:#b48ead;">END</span><span>;
+</span><span>$BODY$
+</span><span>
+</span><span>LANGUAGE plpgsql VOLATILE
+</span><span>COST </span><span style="color:#d08770;">100</span><span>;
+</span></code></pre>
+<p>And then, we can test it to see if a schema does exist:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT</span><span> check_existence('</span><span style="color:#a3be8c;">public</span><span>');
+</span></code></pre>
+<p>We can also check for the non-existence of a schema:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT</span><span> check_existence('</span><span style="color:#a3be8c;">backup</span><span>');
+</span></code></pre>
+<table><thead><tr><th>check_existence</th></tr></thead><tbody>
+<tr><td>f</td></tr>
+</tbody></table>
+<h3 id="creating-a-schema">Creating a schema</h3>
+<p>Great, now we know that the <code>backup</code> schema doesn't exist. Let's make
+one. Creating a schema is pretty easy:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">CREATE SCHEMA </span><span style="color:#8fa1b3;">backup</span><span>;
+</span></code></pre>
+<p>Now we can use our function to verify:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT</span><span> check_existence('</span><span style="color:#a3be8c;">backup</span><span>');
+</span></code></pre>
+<h2 id="sequences">Sequences</h2>
+<p>The next step in copying one schema to another is to copy all of the
+<a href="https://www.postgresql.org/docs/14/sql-createsequence.html">sequences</a>:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>FOR object IN
+</span><span style="color:#b48ead;">SELECT
+</span><span>  sequence_name::</span><span style="color:#b48ead;">text
+</span><span style="color:#b48ead;">FROM
+</span><span>  </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">sequences
+</span><span style="color:#b48ead;">WHERE
+</span><span>  sequence_schema = quote_ident(source_schema)
+</span><span>  LOOP
+</span><span>    EXECUTE '</span><span style="color:#a3be8c;">CREATE SEQUENCE </span><span>' | | quote_ident(dest_schema) | | '</span><span style="color:#a3be8c;">.</span><span>' | | quote_ident(object);
+</span><span>
+</span><span>srctbl: = quote_ident(source_schema) | | '</span><span style="color:#a3be8c;">.</span><span>' | | quote_ident(object);
+</span><span>
+</span><span>seq_query: = format('</span><span style="color:#a3be8c;">SELECT max_value, start_value, increment_by, min_value, cache_size, cycle FROM pg_sequences
+</span><span style="color:#a3be8c;">                        WHERE sequencename = %L AND schemaname = %L ;</span><span>', object, source_schema);
+</span><span>
+</span><span>EXECUTE seq_query INTO sq_max_value,
+</span><span>sq_start_value,
+</span><span>sq_increment_by,
+</span><span>sq_min_value,
+</span><span>sq_cache_value,
+</span><span>sq_is_cycled;
+</span><span>
+</span><span>seq_query: = format('</span><span style="color:#a3be8c;">SELECT last_value, log_cnt, is_called FROM %s.%s;</span><span>', source_schema, object);
+</span><span>
+</span><span>EXECUTE seq_query INTO sq_last_value,
+</span><span>sq_log_cnt,
+</span><span>sq_is_called;
+</span><span>
+</span><span>IF sq_is_cycled </span><span style="color:#b48ead;">THEN
+</span><span>  sq_cycled: = '</span><span style="color:#a3be8c;">CYCLE</span><span>';
+</span><span>
+</span><span style="color:#b48ead;">ELSE
+</span><span>  sq_cycled: = '</span><span style="color:#a3be8c;">NO CYCLE</span><span>';
+</span><span>
+</span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>
+</span><span>seq_query: = format('</span><span style="color:#a3be8c;">ALTER SEQUENCE %s.%s INCREMENT BY %s MINVALUE %s MAXVALUE %s START WITH %s RESTART %s CACHE %s %s ;</span><span>', quote_ident(dest_schema), quote_ident(object), sq_increment_by, sq_min_value, sq_max_value, sq_start_value, sq_min_value, sq_cache_value, sq_cycled);
+</span><span>
+</span><span>EXECUTE seq_query;
+</span><span>
+</span><span>buffer: = quote_ident(dest_schema) | | '</span><span style="color:#a3be8c;">.</span><span>' | | quote_ident(object);
+</span><span>
+</span><span>IF include_recs </span><span style="color:#b48ead;">THEN
+</span><span>  EXECUTE '</span><span style="color:#a3be8c;">SELECT setval( </span><span style="color:#96b5b4;">''</span><span>' | | buffer | | '</span><span style="color:#96b5b4;">''</span><span style="color:#a3be8c;">, </span><span>' | | sq_last_value | | '</span><span style="color:#a3be8c;">, </span><span>' | | sq_is_called | | '</span><span style="color:#a3be8c;">);</span><span>';
+</span><span>
+</span><span style="color:#b48ead;">ELSE
+</span><span>  EXECUTE '</span><span style="color:#a3be8c;">SELECT setval( </span><span style="color:#96b5b4;">''</span><span>' | | buffer | | '</span><span style="color:#96b5b4;">''</span><span style="color:#a3be8c;">, </span><span>' | | sq_start_value | | '</span><span style="color:#a3be8c;">, </span><span>' | | sq_is_called | | '</span><span style="color:#a3be8c;">);</span><span>';
+</span><span>
+</span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>
+</span><span style="color:#b48ead;">END</span><span> LOOP;
+</span></code></pre>
+<p>Woh, that's a lot to read. Let's break it down.</p>
+<h3 id="what-is-a-sequence">What is a Sequence</h3>
+<p>A sequence is a special table that generates some sequence of numbers.
+For instance, Sequences are often used for generating the index values
+for a table.</p>
+<h3 id="copying-sequence-and-values">Copying Sequence and Values</h3>
+<p>When copying sequences, we're looking to:</p>
+<ol>
+<li>Get all sequence names from the source schema</li>
+<li>Copy selected sequence names into dest schema</li>
+<li>Populate them with metadata from source sequences</li>
+<li>Update destination schema number to match source schema numbers</li>
+</ol>
+<h3 id="1-get-all-sequence-names">1. Get All Sequence Names</h3>
+<p>If we query Postgres for all sequences attached to the public table:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT</span><span> sequence_name::</span><span style="color:#b48ead;">text 
+</span><span> </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">sequences
+</span><span> </span><span style="color:#b48ead;">WHERE</span><span> sequence_schema = quote_ident('</span><span style="color:#a3be8c;">public</span><span>')
+</span></code></pre>
+<p>We find that we have 7 entries:</p>
+<table><thead><tr><th>sequence_name</th></tr></thead><tbody>
+<tr><td>users_id_seq</td></tr>
+<tr><td>active_storage_attachments_id_seq</td></tr>
+<tr><td>microposts_id_seq</td></tr>
+<tr><td>active_storage_blobs_id_seq</td></tr>
+<tr><td>active_storage_variant_records_id_seq</td></tr>
+<tr><td>relationships_id_seq</td></tr>
+</tbody></table>
+<p>Before we can proceed, we need to ensure our new schema doesn't have any
+sequences in it:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  sequence_name::</span><span style="color:#b48ead;">text
+</span><span style="color:#b48ead;">FROM
+</span><span>  </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">sequences
+</span><span style="color:#b48ead;">WHERE
+</span><span>  sequence_schema = quote_ident('</span><span style="color:#a3be8c;">backup</span><span>')
+</span></code></pre>
+<p>Beautiful, it's empty:</p>
+<table><thead><tr><th>sequence_name</th></tr></thead><tbody>
+<tr><td></td></tr>
+</tbody></table>
+<h3 id="2-create-sequence">2. Create Sequence</h3>
+<p>Creating a list of sequences looks like this:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>FOR object IN
+</span><span style="color:#b48ead;">SELECT
+</span><span>  sequence_name::</span><span style="color:#b48ead;">text
+</span><span style="color:#b48ead;">FROM
+</span><span>  </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">sequences
+</span><span style="color:#b48ead;">WHERE
+</span><span>  sequence_schema = quote_ident(source_schema)
+</span><span>  LOOP
+</span><span>    EXECUTE '</span><span style="color:#a3be8c;">CREATE SEQUENCE </span><span>' || quote_ident(dest_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>
+</span><span style="color:#b48ead;">END</span><span> LOOP;
+</span></code></pre>
+<blockquote>
+<p>The more astute of our reader's will notice that we are seeing some
+new syntax here.
+<a href="https://www.postgresql.org/docs/current/plpgsql-statements.html#PLPGSQL-STATEMENTS-EXECUTING-DYN">Execute</a>,
+executes a command string. In our case a command-string will be a
+dynamic SQL command where we interpolate some variables like source
+schema and destination schema.</p>
+</blockquote>
+<p>Generally, in a schema, there are a lot of sequences. One for each table
+with an index. So, let's zoom in on one sequence and follow it through
+the process.</p>
+<p>From the code above, where you see <code>object</code>, we will replace it with
+<code>microposts_id_seq'</code>, one of the values from the above select statement.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">CREATE SEQUENCE </span><span>backup.</span><span style="color:#8fa1b3;">microposts_id_seq</span><span>;
+</span></code></pre>
+<p>And let's take a look at what we made</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT </span><span style="color:#bf616a;">* </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">backup</span><span>.</span><span style="color:#d08770;">microposts_id_seq</span><span>;
+</span></code></pre>
+<p>We made a table that stores values for last_value, log_cnt[1], and
+is_called[2].</p>
+<h3 id="3-copy-sequence-values">3. Copy Sequence Values</h3>
+<p>Now we're going to fake it a little bit to see what the following
+statement is doing more easily.</p>
+<p>We can translate:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>seq_query: = format('</span><span style="color:#a3be8c;">SELECT max_value, start_value, increment_by, min_value, cache_size, cycle FROM pg_sequences
+</span><span style="color:#a3be8c;">  WHERE sequencename = %L AND schemaname = %L ;</span><span>', object, source_schema);
+</span><span>
+</span><span>EXECUTE seq_query INTO sq_max_value,
+</span><span>sq_start_value,
+</span><span>sq_increment_by,
+</span><span>sq_min_value,
+</span><span>sq_cache_value,
+</span><span>sq_is_cycled;
+</span></code></pre>
+<p>To:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  max_value AS sq_max_value,
+</span><span>  start_value AS sq_start_value,
+</span><span>  increment_by AS sq_increment_by,
+</span><span>  min_value AS sq_min_value,
+</span><span>  cache_size AS sq_cache_value,
+</span><span>  CYCLE AS sq_is_cycled
+</span><span style="color:#b48ead;">FROM
+</span><span>  pg_sequences
+</span><span style="color:#b48ead;">WHERE
+</span><span>  sequencename = '</span><span style="color:#a3be8c;">microposts_id_seq</span><span>'
+</span><span>  AND schemaname = '</span><span style="color:#a3be8c;">public</span><span>';
+</span></code></pre>
+<p>Which gets us a nice little table:</p>
+<table><thead><tr><th>sq_max_value</th><th>sq_start_value</th><th>sq_increment_by</th><th>sq_min_value</th><th>sq_cache_value</th><th>sq_is_cycled</th></tr></thead><tbody>
+<tr><td>9223372036854775807</td><td>1</td><td>1</td><td>1</td><td>1</td><td>f</td></tr>
+</tbody></table>
+<p>Now because of how SQL works, we have to convert data. So we translate
+the value <code>sq_is_cycled</code> from a boolean to a string.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>IF sq_is_cycled </span><span style="color:#b48ead;">THEN
+</span><span>  sq_cycled := '</span><span style="color:#a3be8c;">CYCLE</span><span>';
+</span><span>
+</span><span style="color:#b48ead;">ELSE
+</span><span>  sq_cycled := '</span><span style="color:#a3be8c;">NO CYCLE</span><span>';
+</span><span>
+</span><span style="color:#b48ead;">END</span><span> IF;
+</span></code></pre>
+<p>If we go to the table above, we can see that <code>sq_is_cycled</code> is false,
+which means <code>sq_cycled</code> is set to <code>'NO CYCLE'</code>.</p>
+<blockquote>
+<p>Note: because the code above requires variables, we can't run this
+outside of a function, so we just have to evaluate it inside our
+heads.</p>
+</blockquote>
+<p>So now we want to copy over the data from <code>public.microposts_id_seq</code> to
+<code>backup.microposts_id_seq</code></p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">ALTER SEQUENCE </span><span style="color:#d08770;">backup</span><span>.</span><span style="color:#d08770;">microposts_id_seq
+</span><span>  INCREMENT BY </span><span style="color:#d08770;">1
+</span><span>  MINVALUE </span><span style="color:#d08770;">1
+</span><span>  MAXVALUE </span><span style="color:#d08770;">9223372036854775807</span><span> START </span><span style="color:#b48ead;">WITH </span><span style="color:#d08770;">1</span><span> RESTART </span><span style="color:#d08770;">1
+</span><span>  CACHE </span><span style="color:#d08770;">1</span><span> NO CYCLE;
+</span></code></pre>
+<p>Now, we can run the same select query to get data about a sequence to
+verify that we have successfully cloned <code>microposts_id_seq</code> into
+<code>backup</code></p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  max_value AS sq_max_value,
+</span><span>  start_value AS sq_start_value,
+</span><span>  increment_by AS sq_increment_by,
+</span><span>  min_value AS sq_min_value,
+</span><span>  cache_size AS sq_cache_value,
+</span><span>  CYCLE AS sq_is_cycled
+</span><span style="color:#b48ead;">FROM
+</span><span>  pg_sequences
+</span><span style="color:#b48ead;">WHERE
+</span><span>  sequencename = '</span><span style="color:#a3be8c;">microposts_id_seq</span><span>'
+</span><span>  AND schemaname = '</span><span style="color:#a3be8c;">backup</span><span>';
+</span></code></pre>
+<table><thead><tr><th>sq_max_value</th><th>sq_start_value</th><th>sq_increment_by</th><th>sq_min_value</th><th>sq_cache_value</th><th>sq_is_cycled</th></tr></thead><tbody>
+<tr><td>9223372036854775807</td><td>1</td><td>1</td><td>1</td><td>1</td><td>f</td></tr>
+</tbody></table>
+<h3 id="4-update-sequence-to-match-current-values">4. Update sequence to match current values</h3>
+<p>Then because we're cloning both meta information and records themselves,
+we want to make sure our sequence values align with the <code>public</code>'s
+sequence values.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>seq_query := format('</span><span style="color:#a3be8c;">SELECT last_value, log_cnt, is_called FROM %s.%s;</span><span>', source_schema, object);
+</span><span>
+</span><span>EXECUTE seq_query INTO sq_last_value,
+</span><span>sq_log_cnt,
+</span><span>sq_is_called;
+</span></code></pre>
+<p>So, now we need to get the current state of the sequence for
+<code>microposts_id_seq</code>:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  last_value AS sq_last_value,
+</span><span>  log_cnt AS sq_log_cnt,
+</span><span>  is_called AS sq_is_called
+</span><span style="color:#b48ead;">FROM
+</span><span>  </span><span style="color:#d08770;">public</span><span>.</span><span style="color:#d08770;">microposts_id_seq</span><span>;
+</span></code></pre>
+<table><thead><tr><th>sq_last_value</th><th>sq_log_cnt</th><th>sq_is_called</th></tr></thead><tbody>
+<tr><td>300</td><td>30</td><td>t</td></tr>
+</tbody></table>
+<p>And update the <code>backup</code> schema</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>EXECUTE '</span><span style="color:#a3be8c;">SELECT setval( </span><span style="color:#96b5b4;">''</span><span>' || buffer || '</span><span style="color:#96b5b4;">''</span><span style="color:#a3be8c;">, </span><span>' || sq_last_value || '</span><span style="color:#a3be8c;">, </span><span>' || sq_is_called || '</span><span style="color:#a3be8c;">);</span><span>'
+</span></code></pre>
+<p>Which we can trivially translate to:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  setval('</span><span style="color:#a3be8c;">backup.microposts_id_seq</span><span>', </span><span style="color:#d08770;">300</span><span>, </span><span style="color:#d08770;">TRUE</span><span>);
+</span></code></pre>
+<table><thead><tr><th>setval</th></tr></thead><tbody>
+<tr><td>300</td></tr>
+</tbody></table>
+<ol>
+<li>
+<p>Let's quickly verify our work</p>
+<p>If we call nextval on <code>public.microposts_id_seq</code> and
+<code>backup.microposts_id_seq</code> they should produce the same results.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  nextval('</span><span style="color:#a3be8c;">public.microposts_id_seq</span><span>');
+</span></code></pre>
+<table><thead><tr><th>nextval</th></tr></thead><tbody>
+<tr><td>301</td></tr>
+</tbody></table>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  nextval('</span><span style="color:#a3be8c;">backup.microposts_id_seq</span><span>');
+</span></code></pre>
+<table><thead><tr><th>nextval</th></tr></thead><tbody>
+<tr><td>301</td></tr>
+</tbody></table>
+</li>
+</ol>
+<h3 id="playground">Playground</h3>
+<p>And now we just do that like… 50 more times.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>DO $$
+</span><span>DECLARE
+</span><span>  source_schema </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  dest_schema </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  seq_query </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  buffer </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  srctbl </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  object </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  sq_max_value </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_start_value </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_increment_by </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_min_value </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_cache_value </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_is_cycled bool;
+</span><span>  sq_last_value </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_log_cnt </span><span style="color:#b48ead;">bigint</span><span>;
+</span><span>  sq_is_called bool;
+</span><span>  sq_cycled </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  include_recs bool;
+</span><span style="color:#b48ead;">BEGIN
+</span><span>  include_recs := </span><span style="color:#d08770;">TRUE</span><span>;
+</span><span>  source_schema := '</span><span style="color:#a3be8c;">public</span><span>';
+</span><span>  dest_schema := '</span><span style="color:#a3be8c;">backup</span><span>';
+</span><span>  FOR object IN
+</span><span>  </span><span style="color:#b48ead;">SELECT
+</span><span>    sequence_name::</span><span style="color:#b48ead;">text
+</span><span>  </span><span style="color:#b48ead;">FROM
+</span><span>    </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">sequences
+</span><span>  </span><span style="color:#b48ead;">WHERE
+</span><span>    sequence_schema = quote_ident(source_schema)
+</span><span>    LOOP
+</span><span>      EXECUTE '</span><span style="color:#a3be8c;">CREATE SEQUENCE </span><span>' || quote_ident(dest_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>      srctbl := quote_ident(source_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>      seq_query := format('</span><span style="color:#a3be8c;">SELECT max_value, start_value, increment_by, min_value, cache_size, cycle FROM pg_sequences
+</span><span style="color:#a3be8c;">                        WHERE sequencename = %L AND schemaname = %L ;</span><span>', object, source_schema);
+</span><span>      EXECUTE seq_query INTO sq_max_value,
+</span><span>      sq_start_value,
+</span><span>      sq_increment_by,
+</span><span>      sq_min_value,
+</span><span>      sq_cache_value,
+</span><span>      sq_is_cycled;
+</span><span>      seq_query := format('</span><span style="color:#a3be8c;">SELECT last_value, log_cnt, is_called FROM %s.%s;</span><span>', source_schema, object);
+</span><span>      EXECUTE seq_query INTO sq_last_value,
+</span><span>      sq_log_cnt,
+</span><span>      sq_is_called;
+</span><span>      IF sq_is_cycled </span><span style="color:#b48ead;">THEN
+</span><span>        sq_cycled := '</span><span style="color:#a3be8c;">CYCLE</span><span>';
+</span><span>      </span><span style="color:#b48ead;">ELSE
+</span><span>        sq_cycled := '</span><span style="color:#a3be8c;">NO CYCLE</span><span>';
+</span><span>      </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>      seq_query := format('</span><span style="color:#a3be8c;">ALTER SEQUENCE %s.%s INCREMENT BY %s MINVALUE %s MAXVALUE %s START WITH %s RESTART %s CACHE %s %s ;</span><span>', quote_ident(dest_schema), quote_ident(object), sq_increment_by, sq_min_value, sq_max_value, sq_start_value, sq_min_value, sq_cache_value, sq_cycled);
+</span><span>      EXECUTE seq_query;
+</span><span>      buffer := quote_ident(dest_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>      IF include_recs </span><span style="color:#b48ead;">THEN
+</span><span>        EXECUTE '</span><span style="color:#a3be8c;">SELECT setval( </span><span style="color:#96b5b4;">''</span><span>' || buffer || '</span><span style="color:#96b5b4;">''</span><span style="color:#a3be8c;">, </span><span>' || sq_last_value || '</span><span style="color:#a3be8c;">, </span><span>' || sq_is_called || '</span><span style="color:#a3be8c;">);</span><span>';
+</span><span>      </span><span style="color:#b48ead;">ELSE
+</span><span>        EXECUTE '</span><span style="color:#a3be8c;">SELECT setval( </span><span style="color:#96b5b4;">''</span><span>' || buffer || '</span><span style="color:#96b5b4;">''</span><span style="color:#a3be8c;">, </span><span>' || sq_start_value || '</span><span style="color:#a3be8c;">, </span><span>' || sq_is_called || '</span><span style="color:#a3be8c;">);</span><span>';
+</span><span>      </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>    </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span style="color:#b48ead;">END
+</span><span>$$;
+</span></code></pre>
+<h2 id="tables">Tables</h2>
+<p>For step 3 of our 6 step plan, we need to copy tables. This includes
+their data and metadata. The section of the <code>clone_schema</code> function that
+deals with cloning tables is:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>FOR object IN
+</span><span>    </span><span style="color:#b48ead;">SELECT</span><span> TABLE_NAME::</span><span style="color:#b48ead;">text 
+</span><span>      </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">tables 
+</span><span>     </span><span style="color:#b48ead;">WHERE</span><span> table_schema = quote_ident(source_schema)
+</span><span>       AND table_type = '</span><span style="color:#a3be8c;">BASE TABLE</span><span>'
+</span><span>
+</span><span>  LOOP
+</span><span>    buffer := dest_schema || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>    EXECUTE '</span><span style="color:#a3be8c;">CREATE TABLE </span><span>' || buffer || '</span><span style="color:#a3be8c;"> (LIKE </span><span>' || quote_ident(source_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object) 
+</span><span>        || '</span><span style="color:#a3be8c;"> INCLUDING ALL)</span><span>';
+</span><span>
+</span><span>    IF include_recs 
+</span><span>      </span><span style="color:#b48ead;">THEN 
+</span><span>      </span><span style="color:#65737e;">-- Insert records from source table
+</span><span>      EXECUTE '</span><span style="color:#a3be8c;">INSERT INTO </span><span>' || buffer || '</span><span style="color:#a3be8c;"> SELECT * FROM </span><span>' || quote_ident(source_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object) || '</span><span style="color:#a3be8c;">;</span><span>';
+</span><span>    </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>
+</span><span>    FOR column_, default_ IN
+</span><span>      </span><span style="color:#b48ead;">SELECT</span><span> column_name::</span><span style="color:#b48ead;">text</span><span>, 
+</span><span>             REPLACE(column_default::</span><span style="color:#b48ead;">text</span><span>, source_schema, dest_schema) 
+</span><span>        </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">COLUMNS 
+</span><span>       </span><span style="color:#b48ead;">WHERE</span><span> table_schema = dest_schema 
+</span><span>         AND TABLE_NAME = object 
+</span><span>         AND column_default LIKE '</span><span style="color:#a3be8c;">nextval(%</span><span>' || quote_ident(source_schema) || '</span><span style="color:#a3be8c;">%::regclass)</span><span>'
+</span><span>    LOOP
+</span><span>      EXECUTE '</span><span style="color:#a3be8c;">ALTER TABLE </span><span>' || buffer || '</span><span style="color:#a3be8c;"> ALTER COLUMN </span><span>' || column_ || '</span><span style="color:#a3be8c;"> SET DEFAULT </span><span>' || default_;
+</span><span>    </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>
+</span><span>  </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span></code></pre>
+<p>Luckily, this section of the <code>clone_schema</code> function seems a lot
+simpler. Well, at least for me, but maybe that's because I am performing
+simple select or insert operations on tables any time I play in SQL.</p>
+<h3 id="copying-table-structure-and-data">Copying table structure and data</h3>
+<p>Reading through the SQL above, we can see 4 main tasks ahead of us:</p>
+<ol>
+<li>Get all the tables of interest</li>
+<li>Create the tables in the new schema</li>
+<li>Copy data from the source schema's tables into the new schema's
+tables</li>
+<li>Update Default/Sequence values for appropriate columns</li>
+</ol>
+<h3 id="1-get-all-tables">1. Get all tables</h3>
+<p>We want to iterate over all the tables in a schema. But how do we get
+that information? Luckily, Postgres has meta-programming facilities
+based around schema's called
+<a href="https://www.postgresql.org/docs/current/information-schema.html">information_schema</a>
+which has a
+<a href="https://www.postgresql.org/docs/13/sql-createview.html">view</a>
+specifically for
+<a href="https://www.postgresql.org/docs/current/infoschema-tables.html">tables</a>.</p>
+<p>We can get a list of all table names that are in the public schema, if
+we run the command below.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#65737e;">-- FOR OBJECT In
+</span><span style="color:#b48ead;">SELECT
+</span><span>  TABLE_NAME::</span><span style="color:#b48ead;">text
+</span><span style="color:#b48ead;">FROM
+</span><span>  </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">tables
+</span><span style="color:#b48ead;">WHERE
+</span><span>  table_schema = '</span><span style="color:#a3be8c;">public</span><span>'
+</span><span>  AND table_type = '</span><span style="color:#a3be8c;">BASE TABLE</span><span>'
+</span></code></pre>
+<table><thead><tr><th>table_name</th></tr></thead><tbody>
+<tr><td>schema_migrations</td></tr>
+<tr><td>ar_internal_metadata</td></tr>
+<tr><td>active_storage_blobs</td></tr>
+<tr><td>users</td></tr>
+<tr><td>microposts</td></tr>
+<tr><td>active_storage_attachments</td></tr>
+<tr><td>active_storage_variant_records</td></tr>
+<tr><td>relationships</td></tr>
+</tbody></table>
+<h3 id="2-copying-table-structure">2. Copying table structure</h3>
+<p>Like in sequences, we will step through copying one table as an example
+of how it works across the entire system. Let's operate on the
+<code>microposts</code> table.</p>
+<p>I think you'll be surprised with how simple it is to copy table
+structures across schemas. When doing a CREATE table operation, we can
+interpret the following as "copy this table with X columns, indexes, and
+constraints." All we need are two new pieces of syntax: <a href="https://www.postgresql.org/docs/current/sql-createtable.html">LIKE and
+INCLUDING</a>.</p>
+<blockquote>
+<p>The LIKE clause specifies a table from which the new table
+automatically copies all column names, their data types, and their
+not-null constraints.</p>
+<ul>
+<li>Postgres Documentation</li>
+</ul>
+</blockquote>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">CREATE TABLE </span><span>backup.</span><span style="color:#8fa1b3;">microposts</span><span> (
+</span><span>  LIKE </span><span style="color:#d08770;">public</span><span>.</span><span style="color:#d08770;">microposts</span><span> INCLUDING ALL
+</span><span>);
+</span></code></pre>
+<p>We can verify that this works by seeing that the table exists but is
+void of any data:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  id,
+</span><span>  content
+</span><span style="color:#b48ead;">FROM
+</span><span>  </span><span style="color:#d08770;">backup</span><span>.</span><span style="color:#d08770;">microposts
+</span></code></pre>
+<table><thead><tr><th>id</th><th>content</th></tr></thead><tbody>
+<tr><td></td><td></td></tr>
+</tbody></table>
+<h3 id="3-copy-data">3. Copy Data</h3>
+<p>Copying data is one of the least complicated interactions we have. It's
+just a combination of INSERT and SELECT operations.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">INSERT INTO </span><span style="color:#d08770;">backup</span><span>.</span><span style="color:#d08770;">microposts
+</span><span style="color:#b48ead;">SELECT </span><span style="color:#bf616a;">* </span><span style="color:#b48ead;">FROM
+</span><span>  </span><span style="color:#d08770;">public</span><span>.</span><span style="color:#d08770;">microposts</span><span>;
+</span></code></pre>
+<table><thead><tr><th>INSERT 0 300</th></tr></thead><tbody>
+</tbody></table>
+<p>We can admire our handiwork by using a SELECT and a <a href="https://www.postgresql.org/docs/14/queries-table-expressions.html">RIGHT
+JOIN</a>
+statement to compare the two tables.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  </span><span style="color:#d08770;">public</span><span>.</span><span style="color:#d08770;">microposts</span><span>.content AS public_content,
+</span><span>  </span><span style="color:#d08770;">public</span><span>.</span><span style="color:#d08770;">microposts</span><span>.id AS public_id,
+</span><span>  </span><span style="color:#d08770;">backup</span><span>.</span><span style="color:#d08770;">microposts</span><span>.content AS backup_content,
+</span><span>  </span><span style="color:#d08770;">backup</span><span>.</span><span style="color:#d08770;">microposts</span><span>.id AS backup_id
+</span><span style="color:#b48ead;">FROM
+</span><span>  </span><span style="color:#d08770;">backup</span><span>.</span><span style="color:#d08770;">microposts
+</span><span>  </span><span style="color:#b48ead;">RIGHT JOIN </span><span style="color:#d08770;">public</span><span>.</span><span style="color:#d08770;">microposts</span><span> ON </span><span style="color:#d08770;">backup</span><span>.</span><span style="color:#d08770;">microposts</span><span>.id = </span><span style="color:#d08770;">public</span><span>.</span><span style="color:#d08770;">microposts</span><span>.id
+</span><span style="color:#b48ead;">LIMIT </span><span style="color:#d08770;">10</span><span>;
+</span></code></pre>
+<table><thead><tr><th>public_content</th><th>public_id</th><th>backup_content</th><th>backup_id</th></tr></thead><tbody>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>1</td><td>Quisquam non ut aliquid repudiandae.</td><td>1</td></tr>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>2</td><td>Quisquam non ut aliquid repudiandae.</td><td>2</td></tr>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>3</td><td>Quisquam non ut aliquid repudiandae.</td><td>3</td></tr>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>4</td><td>Quisquam non ut aliquid repudiandae.</td><td>4</td></tr>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>5</td><td>Quisquam non ut aliquid repudiandae.</td><td>5</td></tr>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>6</td><td>Quisquam non ut aliquid repudiandae.</td><td>6</td></tr>
+<tr><td>Vitae quisquam facilis qui vel.</td><td>7</td><td>Vitae quisquam facilis qui vel.</td><td>7</td></tr>
+<tr><td>Vitae quisquam facilis qui vel.</td><td>8</td><td>Vitae quisquam facilis qui vel.</td><td>8</td></tr>
+<tr><td>Vitae quisquam facilis qui vel.</td><td>9</td><td>Vitae quisquam facilis qui vel.</td><td>9</td></tr>
+<tr><td>Vitae quisquam facilis qui vel.</td><td>10</td><td>Vitae quisquam facilis qui vel.</td><td>10</td></tr>
+</tbody></table>
+<p>😲</p>
+<p>Shocking, I know.</p>
+<h3 id="4-update-default-sequence-values-for-columns">4. Update Default/Sequence values for columns</h3>
+<p>When we created the <code>backup.microposts</code> table based off of the
+<code>public.microposts</code> table it copied everything, metadata included, word
+for word. However, this introduces a problem for us when we need to use
+our sequences from earlier. It copies and references <u>all of</u> the
+old table's metadata, including the sequences table reference. So, to
+fix this, we need to search through the table's metadata and look for
+columns with a default value that uses sequences and replaces the inner
+text from referencing <code>public</code> to reference <code>backup</code>.</p>
+<p>We can generate a query that performs this for us.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  column_name::</span><span style="color:#b48ead;">text</span><span>,
+</span><span>  REPLACE(column_default::</span><span style="color:#b48ead;">text</span><span>, '</span><span style="color:#a3be8c;">public</span><span>', '</span><span style="color:#a3be8c;">backup</span><span>'),
+</span><span>  column_default::</span><span style="color:#b48ead;">text
+</span><span style="color:#b48ead;">FROM
+</span><span>  </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">COLUMNS
+</span><span style="color:#b48ead;">WHERE
+</span><span>  table_schema = '</span><span style="color:#a3be8c;">backup</span><span>'
+</span><span>  AND TABLE_NAME = '</span><span style="color:#a3be8c;">microposts</span><span>'
+</span><span>  AND column_default LIKE '</span><span style="color:#a3be8c;">nextval(%public%::regclass)</span><span>'
+</span></code></pre>
+<table><thead><tr><th>column_name</th><th>replace</th><th>column_default</th></tr></thead><tbody>
+<tr><td></td><td></td><td></td></tr>
+</tbody></table>
+<p>We will then use this information to update our apps table to reference
+the new sequences we generated.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">ALTER TABLE </span><span style="color:#d08770;">backup</span><span>.</span><span style="color:#d08770;">microposts
+</span><span>  ALTER COLUMN id </span><span style="color:#b48ead;">SET DEFAULT</span><span> nextval('</span><span style="color:#a3be8c;">backup.microposts_id_seq</span><span>'::regclass);
+</span></code></pre>
+<p>And if you wonder what happens when we call
+nextval('backup.microposts_id_seq'::regclass), you can play with it
+below. In my example, it generates a monotonically increasing number,
+perfect for an object id.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  nextval('</span><span style="color:#a3be8c;">backup.microposts_id_seq</span><span>'::regclass);
+</span></code></pre>
+<table><thead><tr><th>nextval</th></tr></thead><tbody>
+<tr><td>301</td></tr>
+</tbody></table>
+<h3 id="playground-1">Playground</h3>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>DO $$
+</span><span>DECLARE
+</span><span>  object </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  buffer </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  source_schema </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  dest_schema </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  include_recs bool;
+</span><span>  column_ </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  default_ </span><span style="color:#b48ead;">text</span><span>;
+</span><span style="color:#b48ead;">BEGIN
+</span><span>  source_schema := '</span><span style="color:#a3be8c;">public</span><span>';
+</span><span>  dest_schema := '</span><span style="color:#a3be8c;">backup</span><span>';
+</span><span>  include_recs := </span><span style="color:#d08770;">TRUE</span><span>;
+</span><span>  FOR object IN
+</span><span>  </span><span style="color:#b48ead;">SELECT
+</span><span>    TABLE_NAME::</span><span style="color:#b48ead;">text
+</span><span>  </span><span style="color:#b48ead;">FROM
+</span><span>    </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">tables
+</span><span>  </span><span style="color:#b48ead;">WHERE
+</span><span>    table_schema = quote_ident(source_schema)
+</span><span>    AND table_type = '</span><span style="color:#a3be8c;">BASE TABLE</span><span>' LOOP
+</span><span>      buffer := dest_schema || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>      EXECUTE '</span><span style="color:#a3be8c;">CREATE TABLE </span><span>' || buffer || '</span><span style="color:#a3be8c;"> (LIKE </span><span>' || quote_ident(source_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object) || '</span><span style="color:#a3be8c;"> INCLUDING ALL)</span><span>';
+</span><span>      IF include_recs </span><span style="color:#b48ead;">THEN
+</span><span>        </span><span style="color:#65737e;">-- Insert records from source table
+</span><span>        EXECUTE '</span><span style="color:#a3be8c;">INSERT INTO </span><span>' || buffer || '</span><span style="color:#a3be8c;"> SELECT * FROM </span><span>' || quote_ident(source_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object) || '</span><span style="color:#a3be8c;">;</span><span>';
+</span><span>      </span><span style="color:#b48ead;">END</span><span> IF;
+</span><span>      FOR column_,
+</span><span>      default_ IN
+</span><span>      </span><span style="color:#b48ead;">SELECT
+</span><span>        column_name::</span><span style="color:#b48ead;">text</span><span>,
+</span><span>        REPLACE(column_default::</span><span style="color:#b48ead;">text</span><span>, source_schema, dest_schema)
+</span><span>      </span><span style="color:#b48ead;">FROM
+</span><span>        </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">COLUMNS
+</span><span>      </span><span style="color:#b48ead;">WHERE
+</span><span>        table_schema = dest_schema
+</span><span>        AND TABLE_NAME = object
+</span><span>        AND column_default LIKE '</span><span style="color:#a3be8c;">nextval(%</span><span>' || quote_ident(source_schema) || '</span><span style="color:#a3be8c;">%::regclass)</span><span>' LOOP
+</span><span>          EXECUTE '</span><span style="color:#a3be8c;">ALTER TABLE </span><span>' || buffer || '</span><span style="color:#a3be8c;"> ALTER COLUMN </span><span>' || column_ || '</span><span style="color:#a3be8c;"> SET DEFAULT </span><span>' || default_;
+</span><span>        </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>    </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span style="color:#b48ead;">END
+</span><span>$$;
+</span></code></pre>
+<h2 id="foreign-key-constraints">Foreign Key Constraints</h2>
+<p>Now we're going to work on <a href="https://www.postgresql.org/docs/14/ddl-constraints.html#DDL-CONSTRAINTS-FK">foreign key
+constraints</a>.
+Foreign key constraints help validate constraints on relationships
+between tables.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>FOR qry IN
+</span><span style="color:#b48ead;">SELECT
+</span><span>  '</span><span style="color:#a3be8c;">ALTER TABLE </span><span>' || quote_ident(dest_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(</span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">relname</span><span>) || '</span><span style="color:#a3be8c;"> ADD CONSTRAINT </span><span>' || quote_ident(</span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">conname</span><span>) || ' ' || pg_get_constraintdef(</span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">oid</span><span>) || '</span><span style="color:#a3be8c;">;</span><span>'
+</span><span style="color:#b48ead;">FROM
+</span><span>  pg_constraint ct
+</span><span>  </span><span style="color:#b48ead;">JOIN</span><span> pg_class rn ON </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">oid </span><span>= </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">conrelid
+</span><span style="color:#b48ead;">WHERE
+</span><span>  connamespace = src_oid
+</span><span>  AND </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">relkind </span><span>= '</span><span style="color:#a3be8c;">r</span><span>'
+</span><span>  AND </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">contype </span><span>= '</span><span style="color:#a3be8c;">f</span><span>' LOOP
+</span><span>    EXECUTE qry;
+</span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>
+</span></code></pre>
+<h3 id="copying-constraints">Copying Constraints</h3>
+<p>Going by the code above we need to:</p>
+<ol>
+<li>Go over all constraints for source schema</li>
+<li>Generate a query to create the same constraint on the destination
+schema</li>
+<li>Execute all the queries</li>
+</ol>
+<h3 id="0-get-src-schema-oid">0. Get src schema oid</h3>
+<p>Throughout the following code samples, we need to get the <code>oid</code> of the
+source table. So, unlike our main function, we don't have access to that
+<code>oid</code> as a variable. To remedy this, we replace any reference to
+<code>src_oid</code> with the query to get the <code>oid</code> at run time.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  </span><span style="color:#b48ead;">oid
+</span><span style="color:#b48ead;">FROM
+</span><span>  pg_namespace
+</span><span style="color:#b48ead;">WHERE
+</span><span>  nspname = quote_ident('</span><span style="color:#a3be8c;">public</span><span>');
+</span></code></pre>
+<h3 id="1-get-all-constraints-for-source-schema">1. Get all constraints for source schema</h3>
+<p>Postgres has a catalogue called
+<a href="https://www.postgresql.org/docs/current/catalog-pg-constraint.html">pg_constraint</a>
+that contains meta-information around all the constraints (foreign_key,
+primary_key, and exclusion) across the database. Unfortunately, that
+table is not sufficient to generate our query; we also need access to
+<a href="https://www.postgresql.org/docs/current/catalog-pg-class.html">pg_class</a>
+which is a catalogue that keeps meta-information on anything that has a
+column in Postgres.</p>
+<p>In <code>pg_constraint</code> it a has a column called contype, that describes the
+type on constraint that the row describes. Ex:</p>
+<ul>
+<li>c = check constraint</li>
+<li>f = foreign key constraint</li>
+<li>p = primary key constraint</li>
+<li>u = unique constraint</li>
+<li>t = constraint trigger</li>
+<li>x = exclusion constraint</li>
+</ul>
+<p>So because we're looking for foreign key constraints, we can limit our
+query to <code>ct.contype = 'f'</code>.</p>
+<p>For <code>pg_class</code>, it has a column called relkind that describes the kind
+of relations that row describes. Ex:</p>
+<ul>
+<li>r = ordinary table</li>
+<li>i = index</li>
+<li>S = sequence</li>
+<li>t = TOAST table</li>
+<li>v = view</li>
+<li>m = materialized view</li>
+<li>c = composite type</li>
+<li>f = foreign table</li>
+<li>p = partitioned table</li>
+<li>I = partitioned index</li>
+</ul>
+<p>Because we've only really copied over tables, that's all we really care
+about for kinds of relation <code>rn.relkind = 'r'</code>.</p>
+<p>Putting this all together, we'd get a query like:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">relname</span><span>,
+</span><span>  </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">conname</span><span>,
+</span><span>  </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">oid
+</span><span style="color:#b48ead;">FROM
+</span><span>  pg_constraint ct
+</span><span>  </span><span style="color:#b48ead;">JOIN</span><span> pg_class rn ON </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">oid </span><span>= </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">conrelid
+</span><span style="color:#b48ead;">WHERE
+</span><span>  connamespace = (
+</span><span>    </span><span style="color:#b48ead;">SELECT
+</span><span>      </span><span style="color:#b48ead;">oid
+</span><span>    </span><span style="color:#b48ead;">FROM
+</span><span>      pg_namespace
+</span><span>    </span><span style="color:#b48ead;">WHERE
+</span><span>      nspname = quote_ident('</span><span style="color:#a3be8c;">public</span><span>'))
+</span><span>  AND </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">relkind </span><span>= '</span><span style="color:#a3be8c;">r</span><span>'
+</span><span>  AND </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">contype </span><span>= '</span><span style="color:#a3be8c;">f</span><span>';
+</span></code></pre>
+<table><thead><tr><th>relname</th><th>conname</th><th>oid</th></tr></thead><tbody>
+<tr><td>microposts</td><td>fk_rails_558c81314b</td><td>16428</td></tr>
+<tr><td>active_storage_attachments</td><td>fk_rails_c3b3935057</td><td>16458</td></tr>
+<tr><td>active_storage_variant_records</td><td>fk_rails_993965df05</td><td>16476</td></tr>
+</tbody></table>
+<h3 id="2-generate-a-query-to-create-constraints">2. Generate a query to create constraints</h3>
+<p>Postgres has a function,
+<a href="https://www.postgresql.org/docs/13/functions-info.html#FUNCTIONS-INFO-CATALOG-TABLE">pg_get_constraintdef</a>,
+that can generate a constraint definition based on an object id.</p>
+<p>For example, I took a row from the constraints query above and got an
+OID of <code>16428</code>.</p>
+<pre data-lang="example" style="background-color:#2b303b;color:#c0c5ce;" class="language-example "><code class="language-example" data-lang="example"><span>| relname                | conname             |   oid |
+</span><span>|------------------------+---------------------+-------|
+</span><span>| microposts             | fk_rails_d296c622dc | 16428 |
+</span></code></pre>
+<p>If we run a select statement on that function…</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT</span><span> pg_get_constraintdef(</span><span style="color:#d08770;">16428</span><span>)
+</span></code></pre>
+<p>We get the following definition:</p>
+<table><thead><tr><th>pg_get_constraintdef</th></tr></thead><tbody>
+<tr><td>FOREIGN KEY (user_id) REFERENCES users(id)</td></tr>
+</tbody></table>
+<p>We can then put this information with the <code>constraints query</code> to
+generate the query for us:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT
+</span><span>  '</span><span style="color:#a3be8c;">ALTER TABLE </span><span>' || quote_ident('</span><span style="color:#a3be8c;">backup</span><span>') || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(</span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">relname</span><span>) || '</span><span style="color:#a3be8c;"> ADD CONSTRAINT </span><span>' || quote_ident(</span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">conname</span><span>) || ' ' || pg_get_constraintdef(</span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">oid</span><span>) || '</span><span style="color:#a3be8c;">;</span><span>'
+</span><span style="color:#b48ead;">FROM
+</span><span>  pg_constraint ct
+</span><span>  </span><span style="color:#b48ead;">JOIN</span><span> pg_class rn ON </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">oid </span><span>= </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">conrelid
+</span><span style="color:#b48ead;">WHERE
+</span><span>  connamespace = (
+</span><span>    </span><span style="color:#b48ead;">SELECT
+</span><span>      </span><span style="color:#b48ead;">oid
+</span><span>    </span><span style="color:#b48ead;">FROM
+</span><span>      pg_namespace
+</span><span>    </span><span style="color:#b48ead;">WHERE
+</span><span>      nspname = quote_ident('</span><span style="color:#a3be8c;">public</span><span>'))
+</span><span>  AND </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">relkind </span><span>= '</span><span style="color:#a3be8c;">r</span><span>'
+</span><span>  AND </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">contype </span><span>= '</span><span style="color:#a3be8c;">f</span><span>'
+</span><span style="color:#b48ead;">LIMIT </span><span style="color:#d08770;">1</span><span>;
+</span></code></pre>
+<h3 id="3-execute-generate-queries">3. Execute generate queries</h3>
+<p>Now, we can use a select statement to run a string as a query</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT </span><span>'</span><span style="color:#a3be8c;">ALTER TABLE backup.active_storage_attachments ADD CONSTRAINT fk_rails_d296c622dc FOREIGN KEY (blob_id) REFERENCES active_storage_blobs(id);</span><span>'
+</span></code></pre>
+<p>Now, just do that for all foreign keys we need to update. I'll wait ⏰</p>
+<h3 id="playground-todo-still-broken">Playground :todo:still-broken:</h3>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>DO $$
+</span><span>DECLARE
+</span><span>  qry </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  dest_schema </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  src_oid </span><span style="color:#b48ead;">oid</span><span>;
+</span><span>  source_schema </span><span style="color:#b48ead;">text</span><span>;
+</span><span style="color:#b48ead;">BEGIN
+</span><span>  dest_schema = '</span><span style="color:#a3be8c;">backup</span><span>';
+</span><span>  source_schema = '</span><span style="color:#a3be8c;">public</span><span>';
+</span><span>  </span><span style="color:#65737e;">-- Preamble to get src_oid
+</span><span>  </span><span style="color:#b48ead;">SELECT
+</span><span>    </span><span style="color:#b48ead;">oid</span><span> INTO src_oid
+</span><span>  </span><span style="color:#b48ead;">FROM
+</span><span>    pg_namespace
+</span><span>  </span><span style="color:#b48ead;">WHERE
+</span><span>    nspname = quote_ident(source_schema);
+</span><span>  </span><span style="color:#65737e;">-- the actual work
+</span><span>  FOR qry IN
+</span><span>  </span><span style="color:#b48ead;">SELECT
+</span><span>    '</span><span style="color:#a3be8c;">ALTER TABLE </span><span>' || quote_ident(dest_schema) || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(</span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">relname</span><span>) || '</span><span style="color:#a3be8c;"> ADD CONSTRAINT </span><span>' || quote_ident(</span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">conname</span><span>) || ' ' || pg_get_constraintdef(</span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">oid</span><span>) || '</span><span style="color:#a3be8c;">;</span><span>'
+</span><span>  </span><span style="color:#b48ead;">FROM
+</span><span>    pg_constraint ct
+</span><span>    </span><span style="color:#b48ead;">JOIN</span><span> pg_class rn ON </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">oid </span><span>= </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">conrelid
+</span><span>  </span><span style="color:#b48ead;">WHERE
+</span><span>    connamespace = src_oid
+</span><span>    AND </span><span style="color:#d08770;">rn</span><span>.</span><span style="color:#d08770;">relkind </span><span>= '</span><span style="color:#a3be8c;">r</span><span>'
+</span><span>    AND </span><span style="color:#d08770;">ct</span><span>.</span><span style="color:#d08770;">contype </span><span>= '</span><span style="color:#a3be8c;">f</span><span>'
+</span><span>    LOOP
+</span><span>      EXECUTE qry;
+</span><span>    </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span style="color:#b48ead;">END
+</span><span>$$;
+</span></code></pre>
+<h2 id="views">Views</h2>
+<p>In step 5, we will copy all of the views defined in the source schema
+into the destination schema. If you are new to the "advanced" SQL
+concept of a
+<a href="https://www.postgresql.org/docs/14/tutorial-views.html">view</a>; it is a
+way of naming a query that you expect to be running over and over again.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>FOR object IN
+</span><span>  </span><span style="color:#b48ead;">SELECT</span><span> table_name::</span><span style="color:#b48ead;">text
+</span><span>    </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">views
+</span><span>   </span><span style="color:#b48ead;">WHERE</span><span> table_schema = quote_ident(source_schema)
+</span><span>
+</span><span>LOOP
+</span><span>  buffer := dest_schema || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>  </span><span style="color:#b48ead;">SELECT</span><span> view_definition INTO v_def
+</span><span>    </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">views
+</span><span>   </span><span style="color:#b48ead;">WHERE</span><span> table_schema = quote_ident(source_schema)
+</span><span>     AND table_name = quote_ident(object);
+</span><span>
+</span><span>     EXECUTE '</span><span style="color:#a3be8c;">CREATE OR REPLACE VIEW </span><span>' || buffer || '</span><span style="color:#a3be8c;"> AS </span><span>' || v_def || '</span><span style="color:#a3be8c;">;</span><span>' ;
+</span><span>
+</span><span style="color:#b48ead;">END</span><span> LOOP;
+</span></code></pre>
+<p>If you have a database with views, the steps would be as follow:</p>
+<ol>
+<li>Collect views from <code>information_schema.views</code></li>
+<li>Use the view definition that is stored in the view catalogue to
+define the view in the destination schema</li>
+</ol>
+<p>Aye, but there's the rub. Our data set is basic and doesn't include
+views or functions. So we'll build some as we go.</p>
+<h3 id="0-precursor">0. Precursor</h3>
+<p>But before we can do that let's be absolutely sure that we don't have
+any views stored in our view catalog.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT</span><span> table_name::</span><span style="color:#b48ead;">text
+</span><span> </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">views
+</span><span style="color:#b48ead;">WHERE</span><span> table_schema = quote_ident('</span><span style="color:#a3be8c;">public</span><span>')
+</span></code></pre>
+<table><thead><tr><th>table_name</th></tr></thead><tbody>
+<tr><td></td></tr>
+</tbody></table>
+<ol>
+<li>
+<p>Creating our view</p>
+<p>In our example, we'll create a view for all microposts created by a
+particular user.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">CREATE VIEW </span><span>first_users_posts </span><span style="color:#8fa1b3;">AS
+</span><span>  </span><span style="color:#b48ead;">SELECT</span><span> content, </span><span style="color:#d08770;">microposts</span><span>.</span><span style="color:#d08770;">created_at </span><span>as created_at, name
+</span><span>      </span><span style="color:#b48ead;">FROM</span><span> microposts, users
+</span><span>      </span><span style="color:#b48ead;">WHERE </span><span style="color:#d08770;">users</span><span>.</span><span style="color:#d08770;">id </span><span>= (</span><span style="color:#b48ead;">SELECT</span><span> id </span><span style="color:#b48ead;">FROM</span><span> users </span><span style="color:#b48ead;">LIMIT </span><span style="color:#d08770;">1</span><span>)
+</span></code></pre>
+<table><thead><tr><th>CREATE VIEW</th></tr></thead><tbody>
+</tbody></table>
+<p>Now, lets validate that it works</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT </span><span style="color:#bf616a;">* </span><span style="color:#b48ead;">FROM</span><span> first_users_posts </span><span style="color:#b48ead;">LIMIT </span><span style="color:#d08770;">10
+</span></code></pre>
+<table><thead><tr><th>content</th><th>created_at</th><th>name</th></tr></thead><tbody>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>2021-12-15 05:17:48.07503</td><td>Example User</td></tr>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>2021-12-15 05:17:48.085981</td><td>Example User</td></tr>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>2021-12-15 05:17:48.093539</td><td>Example User</td></tr>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>2021-12-15 05:17:48.099877</td><td>Example User</td></tr>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>2021-12-15 05:17:48.106309</td><td>Example User</td></tr>
+<tr><td>Quisquam non ut aliquid repudiandae.</td><td>2021-12-15 05:17:48.112993</td><td>Example User</td></tr>
+<tr><td>Vitae quisquam facilis qui vel.</td><td>2021-12-15 05:17:48.119943</td><td>Example User</td></tr>
+<tr><td>Vitae quisquam facilis qui vel.</td><td>2021-12-15 05:17:48.126818</td><td>Example User</td></tr>
+<tr><td>Vitae quisquam facilis qui vel.</td><td>2021-12-15 05:17:48.133882</td><td>Example User</td></tr>
+<tr><td>Vitae quisquam facilis qui vel.</td><td>2021-12-15 05:17:48.140942</td><td>Example User</td></tr>
+</tbody></table>
+</li>
+</ol>
+<h3 id="1-collecting-the-views">1. Collecting the views</h3>
+<p>With all the dirty work done, we need to loop over all of the views in
+our catalogue. Luckily we've already seen the primary tool for that.
+Again, we'll be limiting our selection to one, so it's easier to follow
+along and go through this step by step.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT</span><span> table_name::</span><span style="color:#b48ead;">text
+</span><span> </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">views
+</span><span style="color:#b48ead;">WHERE</span><span> table_schema = quote_ident('</span><span style="color:#a3be8c;">public</span><span>')
+</span><span style="color:#b48ead;">LIMIT </span><span style="color:#d08770;">1
+</span></code></pre>
+<table><thead><tr><th>table_name</th></tr></thead><tbody>
+<tr><td>first_users_posts</td></tr>
+</tbody></table>
+<h3 id="2-copying-views">2. Copying views</h3>
+<p>Great, we've got a view name. Now we can use that name to build up the
+name of the view for the destination scheme:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT </span><span>'</span><span style="color:#a3be8c;">backup</span><span>' || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident('</span><span style="color:#a3be8c;">first_users_posts</span><span>');
+</span></code></pre>
+<table><thead><tr><th>?column?</th></tr></thead><tbody>
+<tr><td>backup.first_users_posts</td></tr>
+</tbody></table>
+<p>Now that we've generated the name, we need to get the view definition:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT</span><span> view_definition
+</span><span>  </span><span style="color:#b48ead;">FROM </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">views
+</span><span> </span><span style="color:#b48ead;">WHERE</span><span> table_schema = quote_ident('</span><span style="color:#a3be8c;">public</span><span>')
+</span><span>   AND table_name = quote_ident('</span><span style="color:#a3be8c;">first_users_posts</span><span>');
+</span></code></pre>
+<table><thead><tr><th>view_definition</th></tr></thead><tbody>
+<tr><td>SELECT microposts.content,</td></tr>
+<tr><td>microposts.created_at,</td></tr>
+<tr><td>users.name</td></tr>
+<tr><td>FROM microposts,</td></tr>
+<tr><td>users</td></tr>
+<tr><td>WHERE (users.id = ( SELECT users_1.id</td></tr>
+<tr><td>FROM users users_1</td></tr>
+<tr><td>LIMIT 1));</td></tr>
+</tbody></table>
+<p>And then, finally, we can use these pieces of information to copy the
+view.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>DO $$
+</span><span style="color:#b48ead;">BEGIN
+</span><span>  EXECUTE '</span><span style="color:#a3be8c;">CREATE OR REPLACE VIEW </span><span>' || '</span><span style="color:#a3be8c;">backup</span><span>' || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident('</span><span style="color:#a3be8c;">first_users_posts</span><span>') || '</span><span style="color:#a3be8c;"> AS </span><span>' || (
+</span><span>    </span><span style="color:#b48ead;">SELECT
+</span><span>      view_definition
+</span><span>    </span><span style="color:#b48ead;">FROM
+</span><span>      </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">views
+</span><span>    </span><span style="color:#b48ead;">WHERE
+</span><span>      table_schema = quote_ident('</span><span style="color:#a3be8c;">public</span><span>')
+</span><span>      AND table_name = quote_ident('</span><span style="color:#a3be8c;">first_users_posts</span><span>')) || '</span><span style="color:#a3be8c;">;</span><span>';
+</span><span style="color:#b48ead;">END
+</span><span>$$;
+</span></code></pre>
+<h3 id="playground-2">Playground</h3>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>DO $$
+</span><span>DECLARE
+</span><span>  object </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  source_schema </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  dest_schema </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  buffer </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  v_def </span><span style="color:#b48ead;">text</span><span>;
+</span><span style="color:#b48ead;">BEGIN
+</span><span>  source_schema := '</span><span style="color:#a3be8c;">public</span><span>';
+</span><span>  dest_schema := '</span><span style="color:#a3be8c;">backup</span><span>';
+</span><span>  FOR object IN
+</span><span>  </span><span style="color:#b48ead;">SELECT
+</span><span>    table_name::</span><span style="color:#b48ead;">text
+</span><span>  </span><span style="color:#b48ead;">FROM
+</span><span>    </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">views
+</span><span>  </span><span style="color:#b48ead;">WHERE
+</span><span>    table_schema = quote_ident(source_schema)
+</span><span>    LOOP
+</span><span>      buffer := dest_schema || '</span><span style="color:#a3be8c;">.</span><span>' || quote_ident(object);
+</span><span>      </span><span style="color:#b48ead;">SELECT
+</span><span>        view_definition INTO v_def
+</span><span>      </span><span style="color:#b48ead;">FROM
+</span><span>        </span><span style="color:#d08770;">information_schema</span><span>.</span><span style="color:#d08770;">views
+</span><span>      </span><span style="color:#b48ead;">WHERE
+</span><span>        table_schema = quote_ident(source_schema)
+</span><span>        AND table_name = quote_ident(object);
+</span><span>      EXECUTE '</span><span style="color:#a3be8c;">CREATE OR REPLACE VIEW </span><span>' || buffer || '</span><span style="color:#a3be8c;"> AS </span><span>' || v_def || '</span><span style="color:#a3be8c;">;</span><span>';
+</span><span>    </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span style="color:#b48ead;">END
+</span><span>$$;
+</span></code></pre>
+<h2 id="functions">Functions</h2>
+<p>And this is where we are going to get <code>Meta</code>. We will talk about a
+cloning function while dissecting our cloning function.</p>
+<blockquote>
+<p>For those reading this, not in 2022, Facebook recently changed their
+name to Meta, so I wanted to make a bad pun. But instead of you being
+able to chuckle at that, you now have to read this long-winded
+explanation.</p>
+</blockquote>
+<p>The final part of the clone schema function is:</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>FOR func_oid IN
+</span><span>  </span><span style="color:#b48ead;">SELECT oid
+</span><span>    </span><span style="color:#b48ead;">FROM</span><span> pg_proc 
+</span><span>   </span><span style="color:#b48ead;">WHERE</span><span> pronamespace = src_oid
+</span><span>
+</span><span>LOOP      
+</span><span>  </span><span style="color:#b48ead;">SELECT</span><span> pg_get_functiondef(func_oid) INTO qry;
+</span><span>  </span><span style="color:#b48ead;">SELECT</span><span> replace(qry, source_schema, dest_schema) INTO dest_qry;
+</span><span>  EXECUTE dest_qry;
+</span><span>
+</span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>
+</span><span>RETURN; 
+</span></code></pre>
+<h3 id="generating-a-list-of-functions">Generating a list of functions</h3>
+<p>We need at least one function to clone, so why not add the function that
+this article is about? You <u>could</u> scroll all the way back to the
+page, copy and paste it in your psql or pgAdmin or whatever you're using
+to follow along… or you could do what the uncool kids are doing and
+evaluate the following expression in Emacs.</p>
+<pre data-lang="commonlisp" style="background-color:#2b303b;color:#c0c5ce;" class="language-commonlisp "><code class="language-commonlisp" data-lang="commonlisp"><span>(org-sbe clone_schema_func)
+</span></code></pre>
+<p>Now, we can search for all functions in our current schema</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT oid</span><span>, proname, pronamespace
+</span><span>  </span><span style="color:#b48ead;">FROM</span><span> pg_proc
+</span><span>  </span><span style="color:#b48ead;">WHERE</span><span> proname = '</span><span style="color:#a3be8c;">clone_schema</span><span>'
+</span></code></pre>
+<p>We can do the same as our base query by getting the object id of our
+current schema…</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT oid
+</span><span>      </span><span style="color:#b48ead;">FROM</span><span> pg_namespace
+</span><span>     </span><span style="color:#b48ead;">WHERE</span><span> nspname = '</span><span style="color:#a3be8c;">public</span><span>'
+</span></code></pre>
+<p>and to put that together</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT oid</span><span>, proname, pronamespace
+</span><span>  </span><span style="color:#b48ead;">FROM</span><span> pg_proc
+</span><span>  </span><span style="color:#b48ead;">WHERE</span><span> pronamespace = (</span><span style="color:#b48ead;">SELECT oid
+</span><span>                        </span><span style="color:#b48ead;">FROM</span><span> pg_namespace
+</span><span>                        </span><span style="color:#b48ead;">WHERE</span><span> nspname = '</span><span style="color:#a3be8c;">public</span><span>')
+</span></code></pre>
+<blockquote>
+<p>Wouldn't this be a lot easier when we're inside a function and have
+access to variables? Oh, and we have loops?</p>
+</blockquote>
+<h3 id="copying-functions">Copying Functions</h3>
+<p>Now that we have ensured we have data to play with, we now need to:</p>
+<ol>
+<li>get all function definitions</li>
+<li>replace every reference to source_schema with dest_schema within
+those functions</li>
+<li>execute all function definitions as queries.</li>
+</ol>
+<h3 id="1-get-a-function-definition">1. Get a function definition</h3>
+<p>Get a function defition from a func_oid</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT</span><span> pg_get_functiondef(</span><span style="color:#d08770;">16675</span><span>);
+</span></code></pre>
+<blockquote>
+<p>This section omitted for brevity.</p>
+</blockquote>
+<h3 id="2-replace-schema-name">2. Replace schema name</h3>
+<p>Use the
+<a href="https://www.postgresql.org/docs/14/functions-string.html">replace</a>
+function to change the schema name references</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT</span><span> replace((</span><span style="color:#b48ead;">SELECT</span><span> pg_get_functiondef(</span><span style="color:#d08770;">16675</span><span>)), '</span><span style="color:#a3be8c;">public</span><span>', '</span><span style="color:#a3be8c;">backup</span><span>');
+</span></code></pre>
+<blockquote>
+<p>This section omitted for brevity</p>
+</blockquote>
+<h3 id="3-add-the-new-function-definition">3. Add the new function definition</h3>
+<p>Now we need to do a little bit of magic and wrap our Execute call in an
+anonymous function to ensure it runs.</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>DO $$
+</span><span style="color:#b48ead;">BEGIN
+</span><span>  EXECUTE replace((
+</span><span>    </span><span style="color:#b48ead;">SELECT
+</span><span>      pg_get_functiondef(</span><span style="color:#d08770;">16675</span><span>)), '</span><span style="color:#a3be8c;">public</span><span>', '</span><span style="color:#a3be8c;">backup</span><span>');
+</span><span style="color:#b48ead;">END</span><span>$$
+</span></code></pre>
+<p>Then, we can validate our work by searching for this cloned function in
+the new schema</p>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span style="color:#b48ead;">SELECT oid</span><span>, proname, pronamespace
+</span><span>  </span><span style="color:#b48ead;">FROM</span><span> pg_proc
+</span><span>  </span><span style="color:#b48ead;">WHERE</span><span> pronamespace = (</span><span style="color:#b48ead;">SELECT oid
+</span><span>                        </span><span style="color:#b48ead;">FROM</span><span> pg_namespace
+</span><span>                        </span><span style="color:#b48ead;">WHERE</span><span> nspname = '</span><span style="color:#a3be8c;">backup</span><span>')
+</span></code></pre>
+<h3 id="playground-3">Playground</h3>
+<pre data-lang="sql" style="background-color:#2b303b;color:#c0c5ce;" class="language-sql "><code class="language-sql" data-lang="sql"><span>DO $$
+</span><span>DECLARE
+</span><span>  func_oid </span><span style="color:#b48ead;">oid</span><span>;
+</span><span>  src_oid </span><span style="color:#b48ead;">oid</span><span>;
+</span><span>  qry </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  dest_qry </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  source_schema </span><span style="color:#b48ead;">text</span><span>;
+</span><span>  dest_schema </span><span style="color:#b48ead;">text</span><span>;
+</span><span style="color:#b48ead;">BEGIN
+</span><span>  source_schema := '</span><span style="color:#a3be8c;">public</span><span>';
+</span><span>  dest_schema := '</span><span style="color:#a3be8c;">backup</span><span>';
+</span><span>  </span><span style="color:#b48ead;">SELECT
+</span><span>    </span><span style="color:#b48ead;">oid</span><span> INTO src_oid
+</span><span>  </span><span style="color:#b48ead;">FROM
+</span><span>    pg_namespace
+</span><span>  </span><span style="color:#b48ead;">WHERE
+</span><span>    nspname = quote_ident(source_schema);
+</span><span>  FOR func_oid IN
+</span><span>  </span><span style="color:#b48ead;">SELECT
+</span><span>    </span><span style="color:#b48ead;">oid
+</span><span>  </span><span style="color:#b48ead;">FROM
+</span><span>    pg_proc
+</span><span>  </span><span style="color:#b48ead;">WHERE
+</span><span>    pronamespace = src_oid LOOP
+</span><span>      </span><span style="color:#b48ead;">SELECT
+</span><span>        pg_get_functiondef(func_oid) INTO qry;
+</span><span>      </span><span style="color:#b48ead;">SELECT
+</span><span>        replace(qry, source_schema, dest_schema) INTO dest_qry;
+</span><span>      EXECUTE dest_qry;
+</span><span>    </span><span style="color:#b48ead;">END</span><span> LOOP;
+</span><span>  RETURN;
+</span><span style="color:#b48ead;">END
+</span><span>$$;
+</span><span>
+</span></code></pre>
+<h2 id="fin">Fin</h2>
+<p>And that, in essence, is how you copy one schema into the next. I think
+that was pretty simple… you know, once it's been broken down into a
+bunch of small readable chunks that you can easily play with.</p>
+<h2 id="footnotes">Footnotes</h2>
+<p>[1] Why log_cnt exists is kind of interesting.
+<a href="https://stackoverflow.com/a/66458412">https://stackoverflow.com/a/66458412</a></p>
+<p>[2] is_called is boolean that modifies what setval returns.
+<a href="https://www.postgresql.org/docs/14/functions-sequence.html">https://www.postgresql.org/docs/14/functions-sequence.html</a></p>
+ 
+        </div>
+        
+    <div class="section bottom-menu">
+        <hr>
+        <p>
+            
+                
+                
+                    
+                    <a href="http://127.0.0.1:1111/blog/">
+    
+    
+    List of blog posts
+</a>
+                    ·
+                
+            
+            <a href="http://127.0.0.1:1111/">
+                home
+            </a>
+        </p>
+    </div>
+
+        
+    
+
+    </div>
+
+    <script src="./copy-schema_files/livereload.js.download"></script>
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration></html>

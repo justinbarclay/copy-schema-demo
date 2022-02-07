@@ -1,9 +1,7 @@
 +++
 title = "How I sped up demo data generation by 97%"
-weight = 1
+date = 2022-01-22
 +++
-
-# How I sped up demo data generation by 97%
 
 > I find it best to play with code to see how it really works. So this
 > post is meant as a playground. In fact, that was most of the impetus
@@ -166,7 +164,7 @@ have a restriction, loops can only run within function calls.
 So to write a for loop in an anonymous function, it would look something
 like this:
 
-``` SQL
+``` sql
 do $$
 BEGIN
  FOR counter IN 1..5 LOOP
@@ -179,7 +177,7 @@ $$;
 If you copy and paste this into a PSQL REPL, you would get output like
 below:
 
-``` SQL
+``` sql
 NOTICE:  Counter: 1
 NOTICE:  Counter: 2
 NOTICE:  Counter: 3
@@ -416,7 +414,7 @@ to grasp this.
 
 ## Metaprogramming in Postgres
 
-``` SQL
+``` sql
 SELECT * FROM pg_namespace;
 ```
 
@@ -441,7 +439,7 @@ more.
 Knowing about the existence of `pg_namespace` gives us the ability to
 understand the first section of code:
 
-``` SQL
+``` sql
 -- Check that source_schema exists
     SELECT oid INTO src_oid
       FROM pg_namespace
@@ -469,15 +467,38 @@ Unfortunately, we can't really run that as pure SQL in its current form.
 So instead, we need to make it a function so we can normalize the
 results:
 
+``` sql
+CREATE OR REPLACE FUNCTION check_existence(
+  source_schema text)
+  RETURNS bool AS $BODY$
+BEGIN
+
+ PERFORM oid
+    FROM pg_namespace
+   WHERE nspname = quote_ident(source_schema);
+  IF NOT FOUND
+  THEN
+    RAISE NOTICE 'source schema % does not exist!', source_schema;
+    RETURN false;
+  ELSE
+    RETURN true;
+  END IF;
+END;
+$BODY$
+
+LANGUAGE plpgsql VOLATILE
+COST 100;
+```
+
 And then, we can test it to see if a schema does exist:
 
-``` SQL
+``` sql
 SELECT check_existence('public');
 ```
 
 We can also check for the non-existence of a schema:
 
-``` SQL
+``` sql
 SELECT check_existence('backup');
 ```
 
@@ -490,9 +511,13 @@ SELECT check_existence('backup');
 Great, now we know that the `backup` schema doesn't exist. Let's make
 one. Creating a schema is pretty easy:
 
+``` sql
+CREATE SCHEMA backup;
+```
+
 Now we can use our function to verify:
 
-``` SQL
+``` sql
 SELECT check_existence('backup');
 ```
 
@@ -501,7 +526,7 @@ SELECT check_existence('backup');
 The next step in copying one schema to another is to copy all of the
 [sequences](https://www.postgresql.org/docs/14/sql-createsequence.html):
 
-``` SQL
+``` sql
 FOR object IN
 SELECT
   sequence_name::text
@@ -576,7 +601,7 @@ When copying sequences, we're looking to:
 
 If we query Postgres for all sequences attached to the public table:
 
-``` SQL
+``` sql
 SELECT sequence_name::text 
  FROM information_schema.sequences
  WHERE sequence_schema = quote_ident('public')
@@ -596,7 +621,7 @@ We find that we have 7 entries:
 Before we can proceed, we need to ensure our new schema doesn't have any
 sequences in it:
 
-``` SQL
+``` sql
 SELECT
   sequence_name::text
 FROM
@@ -605,7 +630,7 @@ WHERE
   sequence_schema = quote_ident('backup')
 ```
 
-Beautiful:
+Beautiful, it's empty:
 
 | sequence_name |
 |---------------|
@@ -615,7 +640,7 @@ Beautiful:
 
 Creating a list of sequences looks like this:
 
-``` SQL
+``` sql
 FOR object IN
 SELECT
   sequence_name::text
@@ -642,6 +667,10 @@ the process.
 
 From the code above, where you see `object`, we will replace it with
 `microposts_id_seq'`, one of the values from the above select statement.
+
+``` sql
+CREATE SEQUENCE backup.microposts_id_seq;
+```
 
 And let's take a look at what we made
 
@@ -697,7 +726,7 @@ Which gets us a nice little table:
 Now because of how SQL works, we have to convert data. So we translate
 the value `sq_is_cycled` from a boolean to a string.
 
-``` SQL
+``` sql
 IF sq_is_cycled THEN
   sq_cycled := 'CYCLE';
 
@@ -742,8 +771,11 @@ FROM
 WHERE
   sequencename = 'microposts_id_seq'
   AND schemaname = 'backup';
-
 ```
+
+| sq_max_value        | sq_start_value | sq_increment_by | sq_min_value | sq_cache_value | sq_is_cycled |
+|---------------------|----------------|-----------------|--------------|----------------|--------------|
+| 9223372036854775807 | 1              | 1               | 1            | 1              | f            |
 
 ### 4. Update sequence to match current values
 
@@ -771,6 +803,10 @@ FROM
   public.microposts_id_seq;
 ```
 
+| sq_last_value | sq_log_cnt | sq_is_called |
+|---------------|------------|--------------|
+| 300           | 30         | t            |
+
 And update the `backup` schema
 
 ``` sql
@@ -779,10 +815,14 @@ EXECUTE 'SELECT setval( ''' || buffer || ''', ' || sq_last_value || ', ' || sq_i
 
 Which we can trivially translate to:
 
-``` SQL
+``` sql
 SELECT
   setval('backup.microposts_id_seq', 300, TRUE);
 ```
+
+| setval |
+|--------|
+| 300    |
 
 1.  Let's quickly verify our work
 
@@ -881,7 +921,7 @@ For step 3 of our 6 step plan, we need to copy tables. This includes
 their data and metadata. The section of the `clone_schema` function that
 deals with cloning tables is:
 
-``` SQL
+``` sql
 FOR object IN
     SELECT TABLE_NAME::text 
       FROM information_schema.tables 
@@ -990,7 +1030,7 @@ CREATE TABLE backup.microposts (
 We can verify that this works by seeing that the table exists but is
 void of any data:
 
-``` SQL
+``` sql
 SELECT
   id,
   content
@@ -1188,7 +1228,7 @@ source table. So, unlike our main function, we don't have access to that
 `oid` as a variable. To remedy this, we replace any reference to
 `src_oid` with the query to get the `oid` at run time.
 
-``` SQL
+``` sql
 SELECT
   oid
 FROM
@@ -1240,7 +1280,7 @@ about for kinds of relation `rn.relkind = 'r'`.
 
 Putting this all together, we'd get a query like:
 
-``` SQL
+``` sql
 SELECT
   rn.relname,
   ct.conname,
@@ -1296,7 +1336,7 @@ We get the following definition:
 We can then put this information with the `constraints query` to
 generate the query for us:
 
-``` SQL
+``` sql
 SELECT
   'ALTER TABLE ' || quote_ident('backup') || '.' || quote_ident(rn.relname) || ' ADD CONSTRAINT ' || quote_ident(ct.conname) || ' ' || pg_get_constraintdef(ct.oid) || ';'
 FROM
@@ -1319,7 +1359,7 @@ LIMIT 1;
 
 Now, we can use a select statement to run a string as a query
 
-``` SQL
+``` sql
 SELECT 'ALTER TABLE backup.active_storage_attachments ADD CONSTRAINT fk_rails_d296c622dc FOREIGN KEY (blob_id) REFERENCES active_storage_blobs(id);'
 ```
 
@@ -1327,7 +1367,7 @@ Now, just do that for all foreign keys we need to update. I'll wait ⏰
 
 ### Playground :todo:still-broken:
 
-``` SQL
+``` sql
 DO $$
 DECLARE
   qry text;
@@ -1390,14 +1430,14 @@ END LOOP;
 
 If you have a database with views, the steps would be as follow:
 
-1.  Loops over each view in `information_schema.views`
+1.  Collect views from `information_schema.views`
 2.  Use the view definition that is stored in the view catalogue to
     define the view in the destination schema
 
 Aye, but there's the rub. Our data set is basic and doesn't include
 views or functions. So we'll build some as we go.
 
-### Precursor
+### 0. Precursor
 
 But before we can do that let's be absolutely sure that we don't have
 any views stored in our view catalog.
@@ -1408,39 +1448,43 @@ SELECT table_name::text
 WHERE table_schema = quote_ident('public')
 ```
 
-### Creating our view
+| table_name |
+|------------|
+|            |
 
-In our example, we'll create a view for all microposts created by a
-particular user.
+1.  Creating our view
 
-``` sql
-CREATE VIEW first_users_posts AS
-  SELECT content, microposts.created_at as created_at, name
-      FROM microposts, users
-      WHERE users.id = (SELECT id FROM users LIMIT 1)
-```
+    In our example, we'll create a view for all microposts created by a
+    particular user.
 
-| CREATE VIEW |
-|-------------|
+    ``` sql
+    CREATE VIEW first_users_posts AS
+      SELECT content, microposts.created_at as created_at, name
+          FROM microposts, users
+          WHERE users.id = (SELECT id FROM users LIMIT 1)
+    ```
 
-Now, lets validate that it works
+    | CREATE VIEW |
+    |-------------|
 
-``` sql
-SELECT * FROM first_users_posts LIMIT 10
-```
+    Now, lets validate that it works
 
-| content                              | created_at                 | name         |
-|--------------------------------------|----------------------------|--------------|
-| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.07503  | Example User |
-| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.085981 | Example User |
-| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.093539 | Example User |
-| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.099877 | Example User |
-| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.106309 | Example User |
-| Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.112993 | Example User |
-| Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.119943 | Example User |
-| Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.126818 | Example User |
-| Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.133882 | Example User |
-| Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.140942 | Example User |
+    ``` sql
+    SELECT * FROM first_users_posts LIMIT 10
+    ```
+
+    | content                              | created_at                 | name         |
+    |--------------------------------------|----------------------------|--------------|
+    | Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.07503  | Example User |
+    | Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.085981 | Example User |
+    | Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.093539 | Example User |
+    | Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.099877 | Example User |
+    | Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.106309 | Example User |
+    | Quisquam non ut aliquid repudiandae. | 2021-12-15 05:17:48.112993 | Example User |
+    | Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.119943 | Example User |
+    | Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.126818 | Example User |
+    | Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.133882 | Example User |
+    | Vitae quisquam facilis qui vel.      | 2021-12-15 05:17:48.140942 | Example User |
 
 ### 1. Collecting the views
 
@@ -1465,7 +1509,7 @@ LIMIT 1
 Great, we've got a view name. Now we can use that name to build up the
 name of the view for the destination scheme:
 
-``` SQL
+``` sql
 SELECT 'backup' || '.' || quote_ident('first_users_posts');
 ```
 
@@ -1475,7 +1519,7 @@ SELECT 'backup' || '.' || quote_ident('first_users_posts');
 
 Now that we've generated the name, we need to get the view definition:
 
-``` SQL
+``` sql
 SELECT view_definition
   FROM information_schema.views
  WHERE table_schema = quote_ident('public')
@@ -1556,9 +1600,9 @@ cloning function while dissecting our cloning function.
 > able to chuckle at that, you now have to read this long-winded
 > explanation.
 
-Now, the final part in question that we're interested in is:
+The final part of the clone schema function is:
 
-``` SQL
+``` sql
 FOR func_oid IN
   SELECT oid
     FROM pg_proc 
@@ -1597,7 +1641,7 @@ SELECT oid, proname, pronamespace
 We can do the same as our base query by getting the object id of our
 current schema…
 
-``` SQL
+``` sql
 SELECT oid
       FROM pg_namespace
      WHERE nspname = 'public'
@@ -1625,7 +1669,7 @@ Now that we have ensured we have data to play with, we now need to:
     those functions
 3.  execute all function definitions as queries.
 
-### Step 1
+### 1. Get a function definition
 
 Get a function defition from a func_oid
 
@@ -1635,7 +1679,7 @@ SELECT pg_get_functiondef(16675);
 
 > This section omitted for brevity.
 
-### Step 2
+### 2. Replace schema name
 
 Use the
 [replace](https://www.postgresql.org/docs/14/functions-string.html)
@@ -1647,7 +1691,7 @@ SELECT replace((SELECT pg_get_functiondef(16675)), 'public', 'backup');
 
 > This section omitted for brevity
 
-### Step 3
+### 3. Add the new function definition
 
 Now we need to do a little bit of magic and wrap our Execute call in an
 anonymous function to ensure it runs.
@@ -1658,18 +1702,11 @@ BEGIN
   EXECUTE replace((
     SELECT
       pg_get_functiondef(16675)), 'public', 'backup');
-  END$$
+END$$
 ```
 
-I am not sure why the above works and below gives us an error talking
-about how the prepared statement replace does not exist.
-
-``` sql
-EXECUTE replace((SELECT pg_get_functiondef(16496)), 'public', 'backup');
-```
-
-But ignoring that, then we can validate our work by searching for this
-cloned function in the new schema
+Then, we can validate our work by searching for this cloned function in
+the new schema
 
 ``` sql
 SELECT oid, proname, pronamespace
