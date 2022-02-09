@@ -69,7 +69,7 @@ What you do have to do is say you're creating a function with some name and that
   $BODY$
 #+end_src
 
-This is the minimal function I could write to make Postgres happy. But it's not very demonstrative so thats why I decided to show the above code block and why I did not talk about the below code block.
+For those like me who like to push the boundaries, below is the least amount of code I could write to define a function and still make postgres happy.
 #+begin_src sql
   CREATE FUNCTION func ()
       RETURNS void
@@ -79,6 +79,8 @@ This is the minimal function I could write to make Postgres happy. But it's not 
   $BODY$
 #+end_src
 
+That's not very helpful though, is it?
+
 You can also have anonymous functions, where they operate just like a regular function but lack a name, arguments or the ability to return anything. Anonymous functions are suitable for when you need to do some work, and you need the full power of the PL/pgSQL language (loops, conditionals, logs/errors), but you don't need to name it or return anything.
 
 #+begin_src sql
@@ -86,10 +88,15 @@ You can also have anonymous functions, where they operate just like a regular fu
   DECLARE
     src_oid oid;
   BEGIN
-  -- ...
+  -- Do Stuff here
   END
   $$;
 #+end_src
+
+
+#+BEGIN_QUOTE
+ This might be your first time seeing an oid type, oid stands for [[https://www.postgresql.org/docs/current/datatype-oid.html][object identifier]]. Within our work here we use oids to reference specific pieces of meta information like references to tables or function definitions. If you're familiar with languages like C you can think of them as something like pointers.
+#+END_QUOTE
 
 *** For loops!
 Like most modern languages, PL/pgSQL has ~for loops~. However, it does have a restriction, loops can only run within function calls.
@@ -338,7 +345,18 @@ SELECT * FROM pg_namespace;
 Postgres keeps a table of information about itself and its state, and they call the collection of metadata [[https://www.postgresql.org/docs/13/catalogs.html][systems catalogue]]. Generally, these tables are prefixed with ~pg~. For example, [[https://www.postgresql.org/docs/13/catalog-pg-namespace.html][pg_namespace]] is a table that contains information about all schemas stored in the database.
 
 ** Schemas
-I assume you know about Schemas because this is a blog post on how to clone one schema to another. However, if you're new to SQL or have never needed to concern yourself with schemas before, visit [[https://www.postgresql.org/docs/current/ddl-schemas.][here]] to find out more.
+I assume you know about Schemas because this is a blog post on how to clone one schema to another. However, if you're new to SQL or have never needed to concern yourself with schemas before Postgres' [[https://www.postgresql.org/docs/current/ddl-schemas.html][docs]] have a great explanation of why you would have different schemas:
+
+#+BEGIN_QUOTE
+There are several reasons why one might want to use schemas:
+
+- To allow many users to use one database without interfering with each other.
+
+- To organize database objects into logical groups to make them more manageable.
+
+- Third-party applications can be put into separate schemas so they do not collide with the names of other objects.
+#+END_QUOTE
+
 *** Checking for the existence of schema
 Knowing about the existence of ~pg_namespace~ gives us the ability to understand the first section of code:
 #+begin_src sql
@@ -636,6 +654,17 @@ So now we want to copy over the data from ~public.microposts_id_seq~ to ~backup.
     MAXVALUE 9223372036854775807 START WITH 1 RESTART 1
     CACHE 1 NO CYCLE;
 #+end_src
+
+#+BEGIN_QUOTE
+
+#+END_QUOTE
+Before we can go on, I need to talk about the elephant in the room.
+
+#+BEGIN_QUOTE
+ Heh, a little Postgres humour for everyone.
+#+END_QUOTE
+
+We've just encountered a new piece of syntax, ~ALTER~, which means that we're going to alter the definition of something. In the case above [[https://www.postgresql.org/docs/14/sql-altersequence.html][ALTER SEQUENCE]] tells Postgres that we're about to alter the definition of the ~backup.microposts_id_seq~ definition.
 
 Now, we can run the same select query to get data about a sequence to verify that we have successfully cloned ~microposts_id_seq~ into ~backup~
 #+begin_src sql :exports both
